@@ -39,7 +39,7 @@ jobs:
     # Build the BFF API
     - name: Build Docker image (API)
       run: |
-        IMAGE=ghcr.io/ApacheBalancerBFF
+        IMAGE=ghcr.io/apache-balancer-manager-bff
         docker build -t $IMAGE:sha-${GIT_SHORT_SHA} -t $IMAGE:latest -f ApacheBalancerBFF/Dockerfile .
         docker push $IMAGE:sha-${GIT_SHORT_SHA}
         docker push $IMAGE:latest
