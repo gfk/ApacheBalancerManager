@@ -34,12 +34,13 @@ jobs:
 
     - name: Set environment variables
       run: |
+        echo "REPO_NAME_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
         echo "GIT_SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
 
     # Build the BFF API
     - name: Build Docker image (API)
       run: |
-        IMAGE=ghcr.io/apache-balancer-manager-bff
+        IMAGE=ghcr.io/${REPO_NAME_LC}-bff
         docker build -t $IMAGE:sha-${GIT_SHORT_SHA} -t $IMAGE:latest -f ApacheBalancerBFF/Dockerfile .
         docker push $IMAGE:sha-${GIT_SHORT_SHA}
         docker push $IMAGE:latest
