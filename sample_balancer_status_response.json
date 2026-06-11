@@ -1,0 +1,1378 @@
+{
+  "SuccessData": [
+    {
+      "ServerId": "lb-01",
+      "ServerName": "lb-01",
+      "BaseUrl": "http://10.0.0.11",
+      "Balancers": [
+        {
+          "Name": "sponsors-backend",
+          "Nonce": "15d35824-2bb1-7b71-c461-830dd5a0007c",
+          "MaxMembers": "2 [2 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "1",
+          "Method": "byrequests",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://10.0.0.23",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Stby Ok",
+              "StatusFlags": [
+                "Init",
+                "Stby",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "https://sponsors.app-a.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "2839",
+              "Busy": "0",
+              "Load": "0",
+              "To": "3.7M",
+              "From": "79M",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "intranet-backend",
+          "Nonce": "94eeec6c-cf62-e91a-8d59-038b15b0843c",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "byrequests",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://10.0.0.21",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "intranet-reports-backend",
+          "Nonce": "8e5039e3-404a-4d88-3487-f8d03eb2e072",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "byrequests",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://10.0.0.22",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "7",
+              "Busy": "0",
+              "Load": "0",
+              "To": "57K",
+              "From": "2.7K",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "sponsors-test-backend",
+          "Nonce": "6b7d33a0-555a-d19f-b8c8-09591226505d",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "byrequests",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://sponsors.app-a.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "web-public-backend",
+          "Nonce": "726b8c60-6093-ea0b-e224-8953d2c09c6e",
+          "MaxMembers": "2 [2 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "1",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://web-public.app-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "34219",
+              "Busy": "0",
+              "Load": "0",
+              "To": "69M",
+              "From": "410M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (0)",
+              "HealthCheckUri": "/",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "https://web-public.app-2.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Stby Ok",
+              "StatusFlags": [
+                "Init",
+                "Stby",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (0)",
+              "HealthCheckUri": "/",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "portal-backend",
+          "Nonce": "551431c0-d189-d88c-94f1-9fb1d527a2fe",
+          "MaxMembers": "2 [2 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "1",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://portal.app-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "615",
+              "Busy": "0",
+              "Load": "100",
+              "To": "1.1M",
+              "From": "15M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (0)",
+              "HealthCheckUri": "/",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "https://portal.app-2.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Stby Ok",
+              "StatusFlags": [
+                "Init",
+                "Stby",
+                "Ok"
+              ],
+              "Elected": "84",
+              "Busy": "0",
+              "Load": "100",
+              "To": "353K",
+              "From": "2.2M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (0)",
+              "HealthCheckUri": "/",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "catalog-api-backend",
+          "Nonce": "ddd0e48f-b886-a8ad-9fe3-37cc48d56626",
+          "MaxMembers": "3 [3 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "2",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://catalog-api.app-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "5375",
+              "Busy": "0",
+              "Load": "0",
+              "To": "2.6M",
+              "From": "35M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (0)",
+              "HealthCheckUri": "/api/tests/db",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "https://catalog-api.app-2.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "5238",
+              "Busy": "0",
+              "Load": "0",
+              "To": "2.6M",
+              "From": "32M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (0)",
+              "HealthCheckUri": "/api/tests/db",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "http://catalog-api-fallback.docker-1.example.com:8443",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Stby Ok",
+              "StatusFlags": [
+                "Init",
+                "Stby",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (0)",
+              "HealthCheckUri": "/api/tests/db",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "billing-api-backend",
+          "Nonce": "56fcbbba-e999-df87-1df7-96aec459ef94",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "http://billing-api.docker-1.example.com:8443",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "3",
+              "Busy": "0",
+              "Load": "0",
+              "To": "1.7K",
+              "From": "66",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (0)",
+              "HealthCheckUri": "/api/tests/db",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "dev-orders-query-api-backend",
+          "Nonce": "4768939c-c21d-65b8-3a90-2b90c399b20c",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://dev-orders-query-api.dev-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "dev-orders-command-api-backend",
+          "Nonce": "f82f0ed9-a575-b160-2b22-f3e664cefaa8",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://dev-orders-command-api.dev-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "admin-query-api-backend",
+          "Nonce": "0794d3e4-f486-5ad9-203b-6be198c76809",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://admin-query-api.app-4.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "22",
+              "Busy": "0",
+              "Load": "0",
+              "To": "16K",
+              "From": "2.8K",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "admin-command-api-backend",
+          "Nonce": "1c5ecb54-bd31-10c6-efc4-8760e8eac160",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://admin-command-api.app-4.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "dev-admin-query-api-backend",
+          "Nonce": "3781063f-ba85-b8ac-53b4-8546b6660cd0",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://dev-admin-query-api.dev-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "191",
+              "Busy": "0",
+              "Load": "0",
+              "To": "664K",
+              "From": "13M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (0)",
+              "HealthCheckUri": "/queries/health",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "dev-admin-command-api-backend",
+          "Nonce": "6ac13b39-09c1-8c07-7654-1172f2d60a53",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://dev-admin-command-api.dev-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (0)",
+              "HealthCheckUri": "/commands/health",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "events-backend",
+          "Nonce": "222593db-6ca0-4aa4-e393-683ddb8028f1",
+          "MaxMembers": "2 [2 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "1",
+          "Method": "byrequests",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://events.app-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Stby Ok",
+              "StatusFlags": [
+                "Init",
+                "Stby",
+                "Ok"
+              ],
+              "Elected": "64",
+              "Busy": "0",
+              "Load": "0",
+              "To": "28K",
+              "From": "126K",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (1)",
+              "HealthCheckUri": "/Conferencier/",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "https://events.app-2.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "1674",
+              "Busy": "0",
+              "Load": "100",
+              "To": "1.2M",
+              "From": "11M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (0)",
+              "HealthCheckUri": "/Conferencier/",
+              "HealthCheckExpr": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ServerId": "lb-02",
+      "ServerName": "lb-02",
+      "BaseUrl": "http://10.0.0.12",
+      "Balancers": [
+        {
+          "Name": "sponsors-backend",
+          "Nonce": "1f8eef50-2715-4ed2-4f32-8f24141c61f8",
+          "MaxMembers": "2 [2 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "1",
+          "Method": "byrequests",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://10.0.0.23",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Stby Ok",
+              "StatusFlags": [
+                "Init",
+                "Stby",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "https://sponsors.app-a.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "1466",
+              "Busy": "0",
+              "Load": "0",
+              "To": "2.6M",
+              "From": "84M",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "intranet-backend",
+          "Nonce": "03fbf8f4-8f63-2a66-98c0-fbbf96c0a226",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "byrequests",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://10.0.0.21",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "intranet-reports-backend",
+          "Nonce": "622a84f5-4278-8f25-ee45-11e9de33f6b8",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "byrequests",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://10.0.0.22",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "web-public-backend",
+          "Nonce": "a1789886-c8cb-0414-c984-2e4aa5c7c0f1",
+          "MaxMembers": "2 [2 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "1",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://web-public.app-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "29801",
+              "Busy": "0",
+              "Load": "100",
+              "To": "58M",
+              "From": "605M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (1)",
+              "HealthCheckUri": "/",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "https://web-public.app-2.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Stby Ok",
+              "StatusFlags": [
+                "Init",
+                "Stby",
+                "Ok"
+              ],
+              "Elected": "11",
+              "Busy": "0",
+              "Load": "0",
+              "To": "7.9K",
+              "From": "110K",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (0)",
+              "HealthCheckUri": "/",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "portal-backend",
+          "Nonce": "dc0f0553-f1fa-167a-584e-d058803270ba",
+          "MaxMembers": "2 [2 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "1",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://portal.app-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "525",
+              "Busy": "0",
+              "Load": "100",
+              "To": "1.0M",
+              "From": "16M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (0)",
+              "HealthCheckUri": "/",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "https://portal.app-2.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Stby Ok",
+              "StatusFlags": [
+                "Init",
+                "Stby",
+                "Ok"
+              ],
+              "Elected": "39",
+              "Busy": "0",
+              "Load": "100",
+              "To": "87K",
+              "From": "500K",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (0)",
+              "HealthCheckUri": "/",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "catalog-api-backend",
+          "Nonce": "09119767-d937-e0f4-e740-b61cf5634e5b",
+          "MaxMembers": "3 [3 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "2",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://catalog-api.app-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "5279",
+              "Busy": "0",
+              "Load": "0",
+              "To": "2.6M",
+              "From": "32M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (1)",
+              "HealthCheckUri": "/api/tests/db",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "https://catalog-api.app-2.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "5094",
+              "Busy": "0",
+              "Load": "0",
+              "To": "2.5M",
+              "From": "31M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (0)",
+              "HealthCheckUri": "/api/tests/db",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "http://catalog-api-fallback.docker-1.example.com:8443",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Stby Ok",
+              "StatusFlags": [
+                "Init",
+                "Stby",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (0)",
+              "HealthCheckUri": "/api/tests/db",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "billing-api-backend",
+          "Nonce": "f3a8364f-19aa-d340-f8d1-ee86650e7c0a",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "http://billing-api.docker-1.example.com:8443",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "74",
+              "Busy": "0",
+              "Load": "0",
+              "To": "57K",
+              "From": "1.6K",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (0)",
+              "HealthCheckUri": "/api/tests/db",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "dev-orders-query-api-backend",
+          "Nonce": "c9667cf6-2f6b-17ff-09b5-e0cc66d2db43",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://dev-orders-query-api.dev-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "dev-orders-command-api-backend",
+          "Nonce": "27ef4760-d45c-53cb-2dd8-f9654e44236e",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://dev-orders-command-api.dev-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "0",
+              "Busy": "0",
+              "Load": "0",
+              "To": "0",
+              "From": "0",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "admin-query-api-backend",
+          "Nonce": "c305d806-1986-8a6d-a7ed-c6766e101913",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://admin-query-api.app-4.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "36",
+              "Busy": "0",
+              "Load": "0",
+              "To": "25K",
+              "From": "3.1K",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "admin-command-api-backend",
+          "Nonce": "24809eed-fbf1-e2fc-fed5-46eef7c52f31",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://admin-command-api.app-4.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "4",
+              "Busy": "0",
+              "Load": "0",
+              "To": "60K",
+              "From": "44",
+              "HealthCheckMethod": "NONE",
+              "HealthCheckInterval": "30000ms",
+              "HealthCheckPasses": "1 (0)",
+              "HealthCheckFails": "1 (0)",
+              "HealthCheckUri": "",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "dev-admin-query-api-backend",
+          "Nonce": "72a2a243-8937-9f7e-2317-e73b65f55977",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://dev-admin-query-api.dev-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "225",
+              "Busy": "0",
+              "Load": "0",
+              "To": "746K",
+              "From": "18M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (0)",
+              "HealthCheckUri": "/queries/health",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "dev-admin-command-api-backend",
+          "Nonce": "82285a21-a311-b38c-0204-e775a105252e",
+          "MaxMembers": "1 [1 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "0",
+          "Method": "bybusyness",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://dev-admin-command-api.dev-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "8",
+              "Busy": "0",
+              "Load": "0",
+              "To": "27K",
+              "From": "575K",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "2 (0)",
+              "HealthCheckUri": "/commands/health",
+              "HealthCheckExpr": ""
+            }
+          ]
+        },
+        {
+          "Name": "events-backend",
+          "Nonce": "286682dd-566c-92f7-afbb-139f25aa27a5",
+          "MaxMembers": "2 [2 Used]",
+          "StickySession": "(None)",
+          "DisableFailover": "Off",
+          "Timeout": "0",
+          "FailoverAttempts": "1",
+          "Method": "byrequests",
+          "Path": "/",
+          "Active": "Yes",
+          "Workers": [
+            {
+              "Url": "https://events.app-1.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Stby Ok",
+              "StatusFlags": [
+                "Init",
+                "Stby",
+                "Ok"
+              ],
+              "Elected": "11",
+              "Busy": "0",
+              "Load": "0",
+              "To": "9.0K",
+              "From": "92K",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (2)",
+              "HealthCheckUri": "/Conferencier/",
+              "HealthCheckExpr": ""
+            },
+            {
+              "Url": "https://events.app-2.example.com",
+              "Route": "",
+              "RouteRedir": "",
+              "LoadFactor": 1,
+              "Set": "0",
+              "RawStatus": "Init Ok",
+              "StatusFlags": [
+                "Init",
+                "Ok"
+              ],
+              "Elected": "1261",
+              "Busy": "0",
+              "Load": "0",
+              "To": "1.1M",
+              "From": "14M",
+              "HealthCheckMethod": "GET",
+              "HealthCheckInterval": "5000ms",
+              "HealthCheckPasses": "2 (0)",
+              "HealthCheckFails": "4 (0)",
+              "HealthCheckUri": "/Conferencier/",
+              "HealthCheckExpr": ""
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "Errors": []
+}

@@ -1,0 +1,38 @@
+@ApacheBalancerBFF_HostAddress = http://localhost:5084
+
+### Aggregated status of all configured Apache servers (partial success)
+GET {{ApacheBalancerBFF_HostAddress}}/api/balancer/status
+Accept: application/json
+
+### Disable a worker
+POST {{ApacheBalancerBFF_HostAddress}}/api/balancer/worker/status
+Content-Type: application/json
+
+{
+  "ServerId": "lb-01",
+  "BalancerName": "web-public-backend",
+  "WorkerUrl": "https://web-public.app-1.example.com",
+  "ActionType": "Disable"
+}
+
+### Re-enable a worker (clears Disabled, Drain and Stopped)
+POST {{ApacheBalancerBFF_HostAddress}}/api/balancer/worker/status
+Content-Type: application/json
+
+{
+  "ServerId": "lb-01",
+  "BalancerName": "web-public-backend",
+  "WorkerUrl": "https://web-public.app-1.example.com",
+  "ActionType": "Enable"
+}
+
+### Put a worker in draining mode
+POST {{ApacheBalancerBFF_HostAddress}}/api/balancer/worker/status
+Content-Type: application/json
+
+{
+  "ServerId": "lb-01",
+  "BalancerName": "web-public-backend",
+  "WorkerUrl": "https://web-public.app-1.example.com",
+  "ActionType": "Drain"
+}

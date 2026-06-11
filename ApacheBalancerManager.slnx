@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="ApacheBalancerBFF/ApacheBalancerBFF.csproj">
+    <BuildDependency Project="Shared/Shared.csproj" />
+  </Project>
+  <Project Path="ApacheBalancerWasmInterface/ApacheBalancerWasmInterface.csproj" Id="783c1712-cd5d-4ece-8c5f-8e2dddc5e67f">
+    <BuildDependency Project="Shared/Shared.csproj" />
+  </Project>
+  <Project Path="Shared/Shared.csproj" Id="953bf2e5-11a1-4265-bc86-c7f3f802a239" />
+</Solution>

@@ -1,0 +1,357 @@
+@page "/"
+@implements IDisposable
+@inject BalancerApiClient ApiClient
+@inject NotificationService NotificationService
+
+<PageTitle>Apache Balancer Dashboard</PageTitle>
+
+<RadzenStack Gap="1rem">
+
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1.5rem" Wrap="FlexWrap.Wrap">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenSwitch @bind-Value="autoRefreshEnabled" Change="@OnAutoRefreshChanged" />
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-mb-0">Auto-Refresh (15s)</RadzenText>
+            </RadzenStack>
+            <RadzenButton Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Primary"
+                          Click="@OnManualRefreshClickedAsync" IsBusy="@isLoading" />
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-mb-0">
+                @(lastUpdated.HasValue ? $"Last updated: {lastUpdated.Value:HH:mm:ss}" : "Not loaded yet")
+            </RadzenText>
+        </RadzenStack>
+    </RadzenCard>
+
+    @if (serverErrors.Count > 0)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter"
+                     AllowClose="false" Title="Some servers could not be queried">
+            @foreach (ServerErrorDto serverError in serverErrors)
+            {
+                <div><strong>@serverError.ServerId</strong>: @serverError.ErrorMessage</div>
+            }
+        </RadzenAlert>
+    }
+
+    <RadzenDataGrid @ref="poolGrid" TItem="BalancerPoolViewModel" Data="@pools"
+                    ExpandMode="DataGridExpandMode.Multiple" AllowSorting="false" AllowFiltering="false"
+                    RowExpand="@OnPoolExpanded" RowCollapse="@OnPoolCollapsed">
+        <Template Context="pool">
+            <RadzenDataGrid TItem="WorkerViewModel" Data="@pool.Workers" AllowSorting="false" AllowFiltering="false">
+                <Columns>
+                    <RadzenDataGridColumn TItem="WorkerViewModel" Title="Server" Width="110px">
+                        <Template Context="worker">
+                            <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="@worker.ServerId" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="WorkerViewModel" Title="Worker URL" Property="Url" />
+                    <RadzenDataGridColumn TItem="WorkerViewModel" Title="Status" Width="180px">
+                        <Template Context="worker">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem" Wrap="FlexWrap.Wrap">
+                                @foreach (string flag in worker.StatusFlags)
+                                {
+                                    <RadzenBadge BadgeStyle="@GetBadgeStyleForFlag(flag)" Text="@flag" IsPill="true" />
+                                }
+                            </RadzenStack>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="WorkerViewModel" Title="Load" Property="Load" Width="80px" TextAlign="TextAlign.Right" />
+                    <RadzenDataGridColumn TItem="WorkerViewModel" Title="To" Property="To" Width="80px" TextAlign="TextAlign.Right" />
+                    <RadzenDataGridColumn TItem="WorkerViewModel" Title="From" Property="From" Width="80px" TextAlign="TextAlign.Right" />
+                    <RadzenDataGridColumn TItem="WorkerViewModel" Title="Elected" Property="Elected" Width="90px" TextAlign="TextAlign.Right" />
+                    <RadzenDataGridColumn TItem="WorkerViewModel" Title="Actions" Width="190px" TextAlign="TextAlign.Center">
+                        <Template Context="worker">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem" JustifyContent="JustifyContent.Center">
+                                <RadzenButton Icon="play_arrow" ButtonStyle="ButtonStyle.Success"
+                                              Size="ButtonSize.ExtraSmall" Variant="Variant.Flat"
+                                              title="Enable" Disabled="@actionInFlight"
+                                              Click="@(() => ExecuteWorkerActionAsync(worker, EnableAction))" />
+                                <RadzenButton Icon="block" ButtonStyle="ButtonStyle.Danger"
+                                              Size="ButtonSize.ExtraSmall"
+                                              Variant="@(worker.IsDisabled ? Variant.Filled : Variant.Flat)"
+                                              title="Disable" Disabled="@actionInFlight"
+                                              Click="@(() => ExecuteWorkerActionAsync(worker, DisableAction))" />
+                                <RadzenButton Icon="hourglass_empty" ButtonStyle="ButtonStyle.Warning"
+                                              Size="ButtonSize.ExtraSmall"
+                                              Variant="@(worker.IsDraining ? Variant.Filled : Variant.Flat)"
+                                              title="Drain" Disabled="@actionInFlight"
+                                              Click="@(() => ExecuteWorkerActionAsync(worker, DrainAction))" />
+                                <RadzenButton Icon="pause_circle" ButtonStyle="ButtonStyle.Info"
+                                              Size="ButtonSize.ExtraSmall"
+                                              Variant="@(worker.IsStandby ? Variant.Filled : Variant.Flat)"
+                                              title="@(worker.IsStandby ? "Leave hot standby" : "Hot standby")"
+                                              Disabled="@actionInFlight"
+                                              Click="@(() => ToggleStandbyAsync(worker))" />
+                            </RadzenStack>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </Template>
+        <Columns>
+            <RadzenDataGridColumn TItem="BalancerPoolViewModel" Title="Balancer Pool">
+                <Template Context="pool">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@pool.BalancerName</RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="BalancerPoolViewModel" Title="Method" Property="Method" Width="130px" />
+            <RadzenDataGridColumn TItem="BalancerPoolViewModel" Title="Workers" Width="90px" TextAlign="TextAlign.Center">
+                <Template Context="pool">@pool.WorkerCount</Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="BalancerPoolViewModel" Title="Servers" Width="90px" TextAlign="TextAlign.Center">
+                <Template Context="pool">@pool.ServerCount</Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="BalancerPoolViewModel" Title="Health" Width="240px">
+                <Template Context="pool">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem" Wrap="FlexWrap.Wrap">
+                        @if (pool.OkCount > 0)
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@($"{pool.OkCount} Ok")" IsPill="true" />
+                        }
+                        @if (pool.StandbyCount > 0)
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="@($"{pool.StandbyCount} Stby")" IsPill="true" />
+                        }
+                        @if (pool.DisabledCount > 0)
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="@($"{pool.DisabledCount} Dis/Drn")" IsPill="true" />
+                        }
+                        @if (pool.HasError)
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="Err" IsPill="true" />
+                        }
+                    </RadzenStack>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+
+</RadzenStack>
+
+@code {
+    private const string EnableAction = "Enable";
+    private const string DisableAction = "Disable";
+    private const string DrainAction = "Drain";
+    private const string HotStandbyOnAction = "HotStandbyOn";
+    private const string HotStandbyOffAction = "HotStandbyOff";
+
+    private RadzenDataGrid<BalancerPoolViewModel>? poolGrid;
+    private List<BalancerPoolViewModel> pools = new List<BalancerPoolViewModel>();
+    private List<ServerErrorDto> serverErrors = new List<ServerErrorDto>();
+    private readonly HashSet<string> expandedPools = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    private bool autoRefreshEnabled;
+    private bool isLoading;
+    private bool actionInFlight;
+    private DateTimeOffset? lastUpdated;
+    private CancellationTokenSource? autoRefreshCts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task OnManualRefreshClickedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (isLoading)
+        {
+            return;
+        }
+
+        isLoading = true;
+        try
+        {
+            MultiServerResponseDto<ServerStatusDto>? response = await ApiClient.GetStatusAsync();
+            if (response is not null)
+            {
+                pools = BalancerViewModelMapper.ToPoolFirst(response);
+                serverErrors = response.Errors;
+                lastUpdated = DateTimeOffset.Now;
+            }
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Failed to load balancer status",
+                Detail = exception.Message,
+                Duration = 6000
+            });
+        }
+        finally
+        {
+            isLoading = false;
+        }
+
+        StateHasChanged();
+        await RestoreExpandedRowsAsync();
+    }
+
+    private async Task RestoreExpandedRowsAsync()
+    {
+        if (poolGrid is null)
+        {
+            return;
+        }
+
+        foreach (BalancerPoolViewModel pool in pools)
+        {
+            if (expandedPools.Contains(pool.BalancerName))
+            {
+                await poolGrid.ExpandRow(pool);
+            }
+        }
+    }
+
+    private void OnPoolExpanded(BalancerPoolViewModel pool)
+    {
+        expandedPools.Add(pool.BalancerName);
+    }
+
+    private void OnPoolCollapsed(BalancerPoolViewModel pool)
+    {
+        expandedPools.Remove(pool.BalancerName);
+    }
+
+    private async Task ToggleStandbyAsync(WorkerViewModel worker)
+    {
+        string actionType = worker.IsStandby ? HotStandbyOffAction : HotStandbyOnAction;
+        await ExecuteWorkerActionAsync(worker, actionType);
+    }
+
+    private async Task ExecuteWorkerActionAsync(WorkerViewModel worker, string actionType)
+    {
+        if (actionInFlight)
+        {
+            return;
+        }
+
+        actionInFlight = true;
+        try
+        {
+            WorkerActionRequestDto request = new WorkerActionRequestDto
+            {
+                ServerId = worker.ServerId,
+                BalancerName = worker.BalancerName,
+                WorkerUrl = worker.Url,
+                ActionType = actionType
+            };
+
+            WorkerActionResultDto? result = await ApiClient.PostWorkerActionAsync(request);
+            string newStatus = result?.NewStatus?.RawStatus ?? "(unknown)";
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = $"{result?.ActionApplied ?? actionType} applied",
+                Detail = $"{worker.Url} on {worker.ServerId} — new status: {newStatus}",
+                Duration = 4000
+            });
+        }
+        catch (BalancerApiException apiException)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = $"{actionType} failed",
+                Detail = apiException.Message,
+                Duration = 6000
+            });
+        }
+        catch (Exception exception)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = $"{actionType} failed",
+                Detail = exception.Message,
+                Duration = 6000
+            });
+        }
+        finally
+        {
+            actionInFlight = false;
+        }
+
+        await LoadAsync();
+    }
+
+    private void OnAutoRefreshChanged(bool enabled)
+    {
+        if (enabled)
+        {
+            StartAutoRefresh();
+        }
+        else
+        {
+            StopAutoRefresh();
+        }
+    }
+
+    private void StartAutoRefresh()
+    {
+        StopAutoRefresh();
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        autoRefreshCts = cancellationTokenSource;
+        _ = RunAutoRefreshLoopAsync(cancellationTokenSource.Token);
+    }
+
+    private async Task RunAutoRefreshLoopAsync(CancellationToken cancellationToken)
+    {
+        PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(15));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellationToken))
+            {
+                await InvokeAsync(LoadAsync);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Auto-refresh was turned off or the component was disposed.
+        }
+        finally
+        {
+            timer.Dispose();
+        }
+    }
+
+    private void StopAutoRefresh()
+    {
+        if (autoRefreshCts is not null)
+        {
+            autoRefreshCts.Cancel();
+            autoRefreshCts.Dispose();
+            autoRefreshCts = null;
+        }
+    }
+
+    private static BadgeStyle GetBadgeStyleForFlag(string flag)
+    {
+        switch (flag)
+        {
+            case "Ok":
+                return BadgeStyle.Success;
+            case "Stby":
+                return BadgeStyle.Info;
+            case "Err":
+            case "Stop":
+            case "HcFl":
+                return BadgeStyle.Danger;
+            case "Dis":
+            case "Drn":
+                return BadgeStyle.Warning;
+            default:
+                return BadgeStyle.Light;
+        }
+    }
+
+    public void Dispose()
+    {
+        StopAutoRefresh();
+    }
+}

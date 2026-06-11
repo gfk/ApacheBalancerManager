@@ -1,0 +1,381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- saved from url=(0034)http://10.0.0.11/balancer-manager -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"><title>Balancer Manager</title>
+<style type="text/css">
+table {
+ border-width: 1px;
+ border-spacing: 3px;
+ border-style: solid;
+ border-color: gray;
+ border-collapse: collapse;
+ background-color: white;
+ text-align: center;
+}
+th {
+ border-width: 1px;
+ padding: 2px;
+ border-style: dotted;
+ border-color: gray;
+ background-color: lightgray;
+ text-align: center;
+}
+td {
+ border-width: 1px;
+ padding: 2px;
+ border-style: dotted;
+ border-color: gray;
+ background-color: white;
+ text-align: center;
+}
+</style>
+</head>
+<body><h1>Load Balancer Manager for 10.0.0.11</h1>
+
+<dl><dt>Server Version: Apache/2.4.66 (Debian) OpenSSL/3.0.19</dt>
+<dt>Server Built: 2025-12-05T18:54:44</dt>
+<dt>Balancer changes will NOT be persisted on restart.</dt><dt>Balancers are inherited from main server.</dt><dt>ProxyPass settings are inherited from main server.</dt></dl>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=sponsors-backend&amp;nonce=15d35824-2bb1-7b71-c461-830dd5a0007c">balancer://sponsors-backend</a> [p523c4cc7_sponsors-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>2 [2 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>1</td>
+<td>byrequests</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=sponsors-backend&amp;w=https://10.0.0.23&amp;nonce=15d35824-2bb1-7b71-c461-830dd5a0007c">https://10.0.0.23</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Stby Ok </td><td>0</td><td>0</td><td>0</td><td>  0 </td><td>  0 </td><td>NONE</td><td>30000ms</td><td>1 (0)</td><td>1 (0)</td><td></td><td></td></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=sponsors-backend&amp;w=https://sponsors.app-a.example.com&amp;nonce=15d35824-2bb1-7b71-c461-830dd5a0007c">https://sponsors.app-a.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>2324</td><td>0</td><td>0</td><td>2.9M</td><td> 55M</td><td>NONE</td><td>30000ms</td><td>1 (0)</td><td>1 (0)</td><td></td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=intranet-backend&amp;nonce=94eeec6c-cf62-e91a-8d59-038b15b0843c">balancer://intranet-backend</a> [p523c4cc7_intranet-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>1 [1 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>0</td>
+<td>byrequests</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=intranet-backend&amp;w=https://10.0.0.21&amp;nonce=94eeec6c-cf62-e91a-8d59-038b15b0843c">https://10.0.0.21</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>0</td><td>0</td><td>0</td><td>  0 </td><td>  0 </td><td>NONE</td><td>30000ms</td><td>1 (0)</td><td>1 (0)</td><td></td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=intranet-reports-backend&amp;nonce=8e5039e3-404a-4d88-3487-f8d03eb2e072">balancer://intranet-reports-backend</a> [p523c4cc7_intranet-reports-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>1 [1 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>0</td>
+<td>byrequests</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=intranet-reports-backend&amp;w=https://10.0.0.22&amp;nonce=8e5039e3-404a-4d88-3487-f8d03eb2e072">https://10.0.0.22</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>5</td><td>0</td><td>0</td><td> 24K</td><td>2.6K</td><td>NONE</td><td>30000ms</td><td>1 (0)</td><td>1 (0)</td><td></td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=sponsors-test-backend&amp;nonce=6b7d33a0-555a-d19f-b8c8-09591226505d">balancer://sponsors-test-backend</a> [p523c4cc7_sponsors-test-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>1 [1 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>0</td>
+<td>byrequests</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=sponsors-test-backend&amp;w=https://sponsors.app-a.example.com&amp;nonce=6b7d33a0-555a-d19f-b8c8-09591226505d">https://sponsors.app-a.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>0</td><td>0</td><td>0</td><td>  0 </td><td>  0 </td><td>NONE</td><td>30000ms</td><td>1 (0)</td><td>1 (0)</td><td></td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=web-public-backend&amp;nonce=726b8c60-6093-ea0b-e224-8953d2c09c6e">balancer://web-public-backend</a> [p523c4cc7_web-public-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>2 [2 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>1</td>
+<td>bybusyness</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=web-public-backend&amp;w=https://web-public.app-1.example.com&amp;nonce=726b8c60-6093-ea0b-e224-8953d2c09c6e">https://web-public.app-1.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>26497</td><td>0</td><td>0</td><td> 48M</td><td>306M</td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>4 (0)</td><td>/</td><td></td></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=web-public-backend&amp;w=https://web-public.app-2.example.com&amp;nonce=726b8c60-6093-ea0b-e224-8953d2c09c6e">https://web-public.app-2.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Stby Ok </td><td>0</td><td>0</td><td>0</td><td>  0 </td><td>  0 </td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>4 (0)</td><td>/</td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=portal-backend&amp;nonce=551431c0-d189-d88c-94f1-9fb1d527a2fe">balancer://portal-backend</a> [p523c4cc7_portal-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>2 [2 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>1</td>
+<td>bybusyness</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=portal-backend&amp;w=https://portal.app-1.example.com&amp;nonce=551431c0-d189-d88c-94f1-9fb1d527a2fe">https://portal.app-1.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>353</td><td>0</td><td>100</td><td>671K</td><td>2.7M</td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>4 (0)</td><td>/</td><td></td></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=portal-backend&amp;w=https://portal.app-2.example.com&amp;nonce=551431c0-d189-d88c-94f1-9fb1d527a2fe">https://portal.app-2.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Stby Ok </td><td>84</td><td>0</td><td>100</td><td>353K</td><td>2.2M</td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>4 (0)</td><td>/</td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=catalog-api-backend&amp;nonce=ddd0e48f-b886-a8ad-9fe3-37cc48d56626">balancer://catalog-api-backend</a> [p523c4cc7_catalog-api-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>3 [3 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>2</td>
+<td>bybusyness</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=catalog-api-backend&amp;w=https://catalog-api.app-1.example.com&amp;nonce=ddd0e48f-b886-a8ad-9fe3-37cc48d56626">https://catalog-api.app-1.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>3998</td><td>0</td><td>0</td><td>2.0M</td><td> 25M</td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>2 (0)</td><td>/api/tests/db</td><td></td></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=catalog-api-backend&amp;w=https://catalog-api.app-2.example.com&amp;nonce=ddd0e48f-b886-a8ad-9fe3-37cc48d56626">https://catalog-api.app-2.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>3861</td><td>0</td><td>0</td><td>1.9M</td><td> 21M</td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>2 (0)</td><td>/api/tests/db</td><td></td></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=catalog-api-backend&amp;w=http://catalog-api-fallback.docker-1.example.com:8443&amp;nonce=ddd0e48f-b886-a8ad-9fe3-37cc48d56626">http://catalog-api-fallback.docker-1.example.com:8443</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Stby Ok </td><td>0</td><td>0</td><td>0</td><td>  0 </td><td>  0 </td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>2 (0)</td><td>/api/tests/db</td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=billing-api-backend&amp;nonce=56fcbbba-e999-df87-1df7-96aec459ef94">balancer://billing-api-backend</a> [p523c4cc7_billing-api-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>1 [1 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>0</td>
+<td>bybusyness</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=billing-api-backend&amp;w=http://billing-api.docker-1.example.com:8443&amp;nonce=56fcbbba-e999-df87-1df7-96aec459ef94">http://billing-api.docker-1.example.com:8443</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>1</td><td>0</td><td>0</td><td>549 </td><td> 22 </td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>2 (0)</td><td>/api/tests/db</td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=dev-orders-query-api-backend&amp;nonce=4768939c-c21d-65b8-3a90-2b90c399b20c">balancer://dev-orders-query-api-backend</a> [p523c4cc7_dev-orders-query-api-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>1 [1 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>0</td>
+<td>bybusyness</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=dev-orders-query-api-backend&amp;w=https://dev-orders-query-api.dev-1.example.com&amp;nonce=4768939c-c21d-65b8-3a90-2b90c399b20c">https://dev-orders-query-api.dev-1.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>0</td><td>0</td><td>0</td><td>  0 </td><td>  0 </td><td>NONE</td><td>30000ms</td><td>1 (0)</td><td>1 (0)</td><td></td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=dev-orders-command-api-backend&amp;nonce=f82f0ed9-a575-b160-2b22-f3e664cefaa8">balancer://dev-orders-command-api-backend</a> [p523c4cc7_dev-orders-command-api-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>1 [1 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>0</td>
+<td>bybusyness</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=dev-orders-command-api-backend&amp;w=https://dev-orders-command-api.dev-1.example.com&amp;nonce=f82f0ed9-a575-b160-2b22-f3e664cefaa8">https://dev-orders-command-api.dev-1.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>0</td><td>0</td><td>0</td><td>  0 </td><td>  0 </td><td>NONE</td><td>30000ms</td><td>1 (0)</td><td>1 (0)</td><td></td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=admin-query-api-backend&amp;nonce=0794d3e4-f486-5ad9-203b-6be198c76809">balancer://admin-query-api-backend</a> [p523c4cc7_admin-query-api-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>1 [1 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>0</td>
+<td>bybusyness</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=admin-query-api-backend&amp;w=https://admin-query-api.app-4.example.com&amp;nonce=0794d3e4-f486-5ad9-203b-6be198c76809">https://admin-query-api.app-4.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>21</td><td>0</td><td>0</td><td> 15K</td><td>2.8K</td><td>NONE</td><td>30000ms</td><td>1 (0)</td><td>1 (0)</td><td></td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=admin-command-api-backend&amp;nonce=1c5ecb54-bd31-10c6-efc4-8760e8eac160">balancer://admin-command-api-backend</a> [p523c4cc7_admin-command-api-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>1 [1 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>0</td>
+<td>bybusyness</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=admin-command-api-backend&amp;w=https://admin-command-api.app-4.example.com&amp;nonce=1c5ecb54-bd31-10c6-efc4-8760e8eac160">https://admin-command-api.app-4.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>0</td><td>0</td><td>0</td><td>  0 </td><td>  0 </td><td>NONE</td><td>30000ms</td><td>1 (0)</td><td>1 (0)</td><td></td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=dev-admin-query-api-backend&amp;nonce=3781063f-ba85-b8ac-53b4-8546b6660cd0">balancer://dev-admin-query-api-backend</a> [p523c4cc7_dev-admin-query-api-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>1 [1 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>0</td>
+<td>bybusyness</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=dev-admin-query-api-backend&amp;w=https://dev-admin-query-api.dev-1.example.com&amp;nonce=3781063f-ba85-b8ac-53b4-8546b6660cd0">https://dev-admin-query-api.dev-1.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>164</td><td>0</td><td>0</td><td>559K</td><td> 12M</td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>2 (0)</td><td>/queries/health</td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=dev-admin-command-api-backend&amp;nonce=6ac13b39-09c1-8c07-7654-1172f2d60a53">balancer://dev-admin-command-api-backend</a> [p523c4cc7_dev-admin-command-api-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>1 [1 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>0</td>
+<td>bybusyness</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=dev-admin-command-api-backend&amp;w=https://dev-admin-command-api.dev-1.example.com&amp;nonce=6ac13b39-09c1-8c07-7654-1172f2d60a53">https://dev-admin-command-api.dev-1.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>0</td><td>0</td><td>0</td><td>  0 </td><td>  0 </td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>2 (0)</td><td>/commands/health</td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>LoadBalancer Status for <a href="http://10.0.0.11/balancer-manager?b=events-backend&amp;nonce=222593db-6ca0-4aa4-e393-683ddb8028f1">balancer://events-backend</a> [p523c4cc7_events-backend]</h3>
+
+
+<table><tbody><tr><th>MaxMembers</th><th>StickySession</th><th>DisableFailover</th><th>Timeout</th><th>FailoverAttempts</th><th>Method</th><th>Path</th><th>Active</th></tr>
+<tr><td>2 [2 Used]</td>
+<td> (None) </td><td>Off</td>
+<td>0</td><td>1</td>
+<td>byrequests</td>
+<td>/</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<br>
+
+<table><tbody><tr><th>Worker URL</th><th>Route</th><th>RouteRedir</th><th>Factor</th><th>Set</th><th>Status</th><th>Elected</th><th>Busy</th><th>Load</th><th>To</th><th>From</th><th>HC Method</th><th>HC Interval</th><th>Passes</th><th>Fails</th><th>HC uri</th><th>HC Expr</th></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=events-backend&amp;w=https://events.app-1.example.com&amp;nonce=222593db-6ca0-4aa4-e393-683ddb8028f1">https://events.app-1.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Stby Ok </td><td>64</td><td>0</td><td>0</td><td> 28K</td><td>126K</td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>4 (1)</td><td>/Conferencier/</td><td></td></tr>
+<tr>
+<td><a href="http://10.0.0.11/balancer-manager?b=events-backend&amp;w=https://events.app-2.example.com&amp;nonce=222593db-6ca0-4aa4-e393-683ddb8028f1">https://events.app-2.example.com</a></td><td></td><td></td><td>1.00</td><td>0</td><td>Init Ok </td><td>1550</td><td>0</td><td>100</td><td>1.0M</td><td>9.1M</td><td>GET</td><td>5000ms</td><td>2 (0)</td><td>4 (0)</td><td>/Conferencier/</td><td></td></tr>
+</tbody></table>
+<hr>
+<h3>Edit worker settings for https://portal.app-2.example.com</h3>
+<form method="POST" enctype="application/x-www-form-urlencoded" action="http://10.0.0.11/balancer-manager">
+<table><tbody><tr><td>Load factor:</td><td><input name="w_lf" id="w_lf" type="text" value="1.00"></td></tr>
+<tr><td>LB Set:</td><td><input name="w_ls" id="w_ls" type="text" value="0"></td></tr>
+<tr><td>Route:</td><td><input name="w_wr" id="w_wr" type="text" value=""></td></tr>
+<tr><td>Route Redirect:</td><td><input name="w_rr" id="w_rr" type="text" value=""></td></tr>
+<tr><td>Status:</td><td><table><tbody><tr><th>Ignore Errors</th><th>Draining Mode</th><th>Disabled</th><th>Hot Standby</th><th>Hot Spare</th><th>HC Fail</th><th>Stopped</th></tr>
+<tr><td><label for="w_status_I1">On</label> <input name="w_status_I" id="w_status_I1" value="1" type="radio"> <br> <label for="w_status_I0">Off</label> <input name="w_status_I" id="w_status_I0" value="0" type="radio" checked=""></td>
+<td><label for="w_status_N1">On</label> <input name="w_status_N" id="w_status_N1" value="1" type="radio"> <br> <label for="w_status_N0">Off</label> <input name="w_status_N" id="w_status_N0" value="0" type="radio" checked=""></td>
+<td><label for="w_status_D1">On</label> <input name="w_status_D" id="w_status_D1" value="1" type="radio"> <br> <label for="w_status_D0">Off</label> <input name="w_status_D" id="w_status_D0" value="0" type="radio" checked=""></td>
+<td><label for="w_status_H1">On</label> <input name="w_status_H" id="w_status_H1" value="1" type="radio" checked=""> <br> <label for="w_status_H0">Off</label> <input name="w_status_H" id="w_status_H0" value="0" type="radio"></td>
+<td><label for="w_status_R1">On</label> <input name="w_status_R" id="w_status_R1" value="1" type="radio"> <br> <label for="w_status_R0">Off</label> <input name="w_status_R" id="w_status_R0" value="0" type="radio" checked=""></td>
+<td><label for="w_status_C1">On</label> <input name="w_status_C" id="w_status_C1" value="1" type="radio"> <br> <label for="w_status_C0">Off</label> <input name="w_status_C" id="w_status_C0" value="0" type="radio" checked=""></td>
+<td><label for="w_status_S1">On</label> <input name="w_status_S" id="w_status_S1" value="1" type="radio"> <br> <label for="w_status_S0">Off</label> <input name="w_status_S" id="w_status_S0" value="0" type="radio" checked=""></td>
+</tr></tbody></table></td></tr>
+<tr><td colspan="2">
+<table align="center"><tbody><tr><th>Health Check param</th><th>Value</th></tr>
+<tr><td>Method</td><td><select name="w_hm">
+<option value="NONE">NONE</option>
+<option value="TCP">TCP</option>
+<option value="OPTIONS">OPTIONS</option>
+<option value="HEAD">HEAD</option>
+<option value="GET" selected="">GET</option>
+<option value="OPTIONS11">OPTIONS11</option>
+<option value="HEAD11">HEAD11</option>
+<option value="GET11">GET11</option>
+</select>
+</td></tr>
+<tr><td>Expr</td><td><select name="w_he">
+</select>
+</td></tr>
+<tr><td>Interval (ms)</td><td><input name="w_hi" id="w_hi" type="text" value="5000"></td></tr>
+<tr><td>Passes trigger</td><td><input name="w_hp" id="w_hp" type="text" value="2"></td></tr>
+<tr><td>Fails trigger)</td><td><input name="w_hf" id="w_hf" type="text" value="4"></td></tr>
+<tr><td>HC uri</td><td><input name="w_hu" id="w_hu" type="text" value="/"></td></tr>
+</tbody></table>
+</td></tr>
+<tr><td colspan="2"><input type="submit" value="Submit"></td></tr>
+</tbody></table>
+<input type="hidden" name="w" id="w" value="https://portal.app-2.example.com">
+<input type="hidden" name="b" id="b" value="portal-backend">
+<input type="hidden" name="nonce" id="nonce" value="551431c0-d189-d88c-94f1-9fb1d527a2fe">
+</form>
+<hr>
+<address>Apache/2.4.66 (Debian) Server at 10.0.0.11 Port 80</address>
+
+</body></html>
