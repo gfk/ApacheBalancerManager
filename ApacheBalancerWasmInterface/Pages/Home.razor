@@ -11,7 +11,10 @@
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1.5rem" Wrap="FlexWrap.Wrap">
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                 <RadzenSwitch @bind-Value="autoRefreshEnabled" Change="@OnAutoRefreshChanged" />
-                <RadzenText TextStyle="TextStyle.Body1" class="rz-mb-0">Auto-Refresh (15s)</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-mb-0">Auto-Refresh</RadzenText>
+                <RadzenDropDown TValue="int" Value="@autoRefreshSeconds" Data="@autoRefreshIntervals"
+                                ValueProperty="Seconds" TextProperty="Label" Change="@OnAutoRefreshIntervalChanged"
+                                Style="width: 90px;" />
             </RadzenStack>
             <RadzenButton Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Primary"
                           Click="@OnManualRefreshClickedAsync" IsBusy="@isLoading" />
@@ -141,6 +144,14 @@
     private readonly HashSet<string> expandedPools = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     private bool autoRefreshEnabled;
+    private int autoRefreshSeconds = 15;
+    private readonly IReadOnlyList<AutoRefreshInterval> autoRefreshIntervals = new[]
+    {
+        new AutoRefreshInterval(1, "1s"),
+        new AutoRefreshInterval(3, "3s"),
+        new AutoRefreshInterval(5, "5s"),
+        new AutoRefreshInterval(15, "15s")
+    };
     private bool isLoading;
     private bool actionInFlight;
     private DateTimeOffset? lastUpdated;
@@ -293,6 +304,15 @@
         }
     }
 
+    private void OnAutoRefreshIntervalChanged(object value)
+    {
+        autoRefreshSeconds = Convert.ToInt32(value);
+        if (autoRefreshEnabled)
+        {
+            StartAutoRefresh();
+        }
+    }
+
     private void StartAutoRefresh()
     {
         StopAutoRefresh();
@@ -303,7 +323,7 @@
 
     private async Task RunAutoRefreshLoopAsync(CancellationToken cancellationToken)
     {
-        PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(15));
+        PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(autoRefreshSeconds));
         try
         {
             while (await timer.WaitForNextTickAsync(cancellationToken))
@@ -355,4 +375,6 @@
     {
         StopAutoRefresh();
     }
+
+    private sealed record AutoRefreshInterval(int Seconds, string Label);
 }
