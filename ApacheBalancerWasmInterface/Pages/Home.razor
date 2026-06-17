@@ -2,6 +2,7 @@
 @implements IDisposable
 @inject BalancerApiClient ApiClient
 @inject NotificationService NotificationService
+@inject IJSRuntime JS
 
 <PageTitle>Apache Balancer Dashboard</PageTitle>
 
@@ -94,7 +95,15 @@
         <Columns>
             <RadzenDataGridColumn TItem="BalancerPoolViewModel" Title="Balancer Pool">
                 <Template Context="pool">
-                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@pool.BalancerName</RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenButton Icon="push_pin"
+                                      ButtonStyle="@(IsPinned(pool) ? ButtonStyle.Primary : ButtonStyle.Light)"
+                                      Variant="@(IsPinned(pool) ? Variant.Filled : Variant.Text)"
+                                      Size="ButtonSize.ExtraSmall"
+                                      title="@(IsPinned(pool) ? "Unpin from top" : "Pin to top")"
+                                      Click="@(() => TogglePinAsync(pool))" />
+                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@pool.BalancerName</RadzenText>
+                    </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="BalancerPoolViewModel" Title="Method" Property="Method" Width="130px" />
@@ -137,11 +146,13 @@
     private const string DrainAction = "Drain";
     private const string HotStandbyOnAction = "HotStandbyOn";
     private const string HotStandbyOffAction = "HotStandbyOff";
+    private const string PinnedPoolsStorageKey = "apachebalancer.pinnedPools";
 
     private RadzenDataGrid<BalancerPoolViewModel>? poolGrid;
     private List<BalancerPoolViewModel> pools = new List<BalancerPoolViewModel>();
     private List<ServerErrorDto> serverErrors = new List<ServerErrorDto>();
     private readonly HashSet<string> expandedPools = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> pinnedPools = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     private bool autoRefreshEnabled;
     private int autoRefreshSeconds = 15;
@@ -159,6 +170,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadPinnedPoolsAsync();
         await LoadAsync();
     }
 
@@ -180,7 +192,7 @@
             MultiServerResponseDto<ServerStatusDto>? response = await ApiClient.GetStatusAsync();
             if (response is not null)
             {
-                pools = BalancerViewModelMapper.ToPoolFirst(response);
+                pools = ApplyPinOrder(BalancerViewModelMapper.ToPoolFirst(response));
                 serverErrors = response.Errors;
                 lastUpdated = DateTimeOffset.Now;
             }
@@ -228,6 +240,91 @@
     private void OnPoolCollapsed(BalancerPoolViewModel pool)
     {
         expandedPools.Remove(pool.BalancerName);
+    }
+
+    private bool IsPinned(BalancerPoolViewModel pool)
+    {
+        return pinnedPools.Contains(pool.BalancerName);
+    }
+
+    private async Task TogglePinAsync(BalancerPoolViewModel pool)
+    {
+        // Remove returns false when the pool wasn't pinned, so add it instead — a clean toggle.
+        if (!pinnedPools.Remove(pool.BalancerName))
+        {
+            pinnedPools.Add(pool.BalancerName);
+        }
+
+        await SavePinnedPoolsAsync();
+
+        // Reorder in place; reusing the same pool instances keeps the grid's expansion state intact.
+        pools = ApplyPinOrder(pools);
+        StateHasChanged();
+    }
+
+    /// <summary>Returns the pools with pinned ones first, preserving the alphabetical order within each group.</summary>
+    private List<BalancerPoolViewModel> ApplyPinOrder(List<BalancerPoolViewModel> source)
+    {
+        if (pinnedPools.Count == 0)
+        {
+            return source;
+        }
+
+        List<BalancerPoolViewModel> ordered = new List<BalancerPoolViewModel>(source.Count);
+        foreach (BalancerPoolViewModel pool in source)
+        {
+            if (pinnedPools.Contains(pool.BalancerName))
+            {
+                ordered.Add(pool);
+            }
+        }
+        foreach (BalancerPoolViewModel pool in source)
+        {
+            if (!pinnedPools.Contains(pool.BalancerName))
+            {
+                ordered.Add(pool);
+            }
+        }
+        return ordered;
+    }
+
+    private async Task LoadPinnedPoolsAsync()
+    {
+        try
+        {
+            string? json = await JS.InvokeAsync<string?>("localStorage.getItem", PinnedPoolsStorageKey);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return;
+            }
+
+            string[]? names = System.Text.Json.JsonSerializer.Deserialize<string[]>(json);
+            if (names is not null)
+            {
+                pinnedPools.Clear();
+                foreach (string name in names)
+                {
+                    pinnedPools.Add(name);
+                }
+            }
+        }
+        catch
+        {
+            // Ignore unavailable/corrupt storage; the dashboard simply starts with no pinned pools.
+        }
+    }
+
+    private async Task SavePinnedPoolsAsync()
+    {
+        try
+        {
+            string json = System.Text.Json.JsonSerializer.Serialize(pinnedPools);
+            await JS.InvokeVoidAsync("localStorage.setItem", PinnedPoolsStorageKey, json);
+        }
+        catch
+        {
+            // Ignore storage write failures (e.g. private-mode quota); pins just won't persist.
+        }
     }
 
     private async Task ToggleStandbyAsync(WorkerViewModel worker)
