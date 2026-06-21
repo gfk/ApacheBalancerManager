@@ -31,6 +31,14 @@
         <span class="dismiss">🗙</span>
     </div>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <script>
+        // Pins the notification console to its newest line after each render.
+        window.scrollToBottom = function (element) {
+            if (element) {
+                element.scrollTop = element.scrollHeight;
+            }
+        };
+    </script>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
 </body>
 

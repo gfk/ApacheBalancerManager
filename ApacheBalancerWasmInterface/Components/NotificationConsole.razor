@@ -1,0 +1,58 @@
+@implements IDisposable
+@inject ConsoleLogService ConsoleLog
+@inject IJSRuntime JS
+
+<div class="console-window">
+    <div class="console-titlebar">
+        <span class="console-led"></span>
+        <span>console</span>
+    </div>
+    <div class="console-body" @ref="bodyElement">
+        @foreach (ConsoleLogEntry entry in ConsoleLog.Entries)
+        {
+            <div class="console-line @CssClassFor(entry.Severity)">
+                <span class="console-time">@entry.Timestamp.ToString("HH:mm:ss")</span> @entry.Message
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private ElementReference bodyElement;
+
+    protected override void OnInitialized()
+    {
+        ConsoleLog.OnChange += HandleChange;
+    }
+
+    private async void HandleChange()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Keep the newest line in view; older lines scroll up out of sight.
+        await JS.InvokeVoidAsync("scrollToBottom", bodyElement);
+    }
+
+    private static string CssClassFor(ConsoleSeverity severity)
+    {
+        switch (severity)
+        {
+            case ConsoleSeverity.Success:
+                return "console-success";
+            case ConsoleSeverity.Warning:
+                return "console-warning";
+            case ConsoleSeverity.Error:
+                return "console-error";
+            default:
+                return "console-info";
+        }
+    }
+
+    public void Dispose()
+    {
+        ConsoleLog.OnChange -= HandleChange;
+    }
+}

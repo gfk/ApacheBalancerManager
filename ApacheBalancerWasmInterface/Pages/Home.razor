@@ -1,7 +1,7 @@
 @page "/"
 @implements IDisposable
 @inject BalancerApiClient ApiClient
-@inject NotificationService NotificationService
+@inject ConsoleLogService ConsoleLog
 @inject IJSRuntime JS
 
 <PageTitle>Apache Balancer Dashboard</PageTitle>
@@ -199,13 +199,7 @@
         }
         catch (Exception exception)
         {
-            NotificationService.Notify(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Error,
-                Summary = "Failed to load balancer status",
-                Detail = exception.Message,
-                Duration = 6000
-            });
+            ConsoleLog.Error($"Failed to load balancer status: {exception.Message}");
         }
         finally
         {
@@ -353,33 +347,15 @@
 
             WorkerActionResultDto? result = await ApiClient.PostWorkerActionAsync(request);
             string newStatus = result?.NewStatus?.RawStatus ?? "(unknown)";
-            NotificationService.Notify(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = $"{result?.ActionApplied ?? actionType} applied",
-                Detail = $"{worker.Url} on {worker.ServerId} — new status: {newStatus}",
-                Duration = 4000
-            });
+            ConsoleLog.Success($"{result?.ActionApplied ?? actionType} applied: {worker.Url} on {worker.ServerId} — new status: {newStatus}");
         }
         catch (BalancerApiException apiException)
         {
-            NotificationService.Notify(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Error,
-                Summary = $"{actionType} failed",
-                Detail = apiException.Message,
-                Duration = 6000
-            });
+            ConsoleLog.Error($"{actionType} failed: {apiException.Message}");
         }
         catch (Exception exception)
         {
-            NotificationService.Notify(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Error,
-                Summary = $"{actionType} failed",
-                Detail = exception.Message,
-                Duration = 6000
-            });
+            ConsoleLog.Error($"{actionType} failed: {exception.Message}");
         }
         finally
         {

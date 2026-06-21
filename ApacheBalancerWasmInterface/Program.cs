@@ -16,6 +16,7 @@ builder.Services.AddScoped((IServiceProvider serviceProvider) => new HttpClient
     BaseAddress = new Uri(bffBaseUrl)
 });
 builder.Services.AddScoped<BalancerApiClient>();
+builder.Services.AddScoped<ConsoleLogService>();
 builder.Services.AddRadzenComponents();
 
 await builder.Build().RunAsync();

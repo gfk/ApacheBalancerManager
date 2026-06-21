@@ -87,3 +87,98 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* Old-school notification console, pinned to the top-right of the dashboard. */
+.console-window {
+    position: fixed;
+    top: 5px;
+    right: 1rem;
+    z-index: 1100;
+    width: 1000px;
+    max-width: calc(100vw - 2rem);
+    background: #0a0a0a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+    font-family: "Cascadia Mono", "Consolas", "Courier New", monospace;
+}
+
+.console-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.15rem 0.5rem;
+    background: #1c1c1c;
+    border-bottom: 1px solid #333;
+    color: #9a9a9a;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    user-select: none;
+}
+
+.console-led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3fd13f;
+    box-shadow: 0 0 4px #3fd13f;
+}
+
+.console-body {
+    height: calc(5 * 1.45em); /* ~5 lines tall */
+    overflow-y: auto;
+    padding: 0.25rem 0.5rem;
+    font-size: 9pt;
+    line-height: 1.45em;
+    color: #cfcfcf;
+    background: #0a0a0a;
+    /* Dark scrollbar (Firefox) so it blends into the console. */
+    scrollbar-width: thin;
+    scrollbar-color: #444 #0a0a0a;
+}
+
+/* Dark scrollbar (Chromium/WebKit) so it blends into the console. */
+.console-body::-webkit-scrollbar {
+    width: 10px;
+}
+
+.console-body::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+.console-body::-webkit-scrollbar-thumb {
+    background: #444;
+    border: 2px solid #0a0a0a;
+    border-radius: 5px;
+}
+
+.console-body::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a;
+}
+
+.console-line {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.console-time {
+    color: #6a6a6a;
+}
+
+.console-info {
+    color: #6fb7ff;
+}
+
+.console-success {
+    color: #3fd13f;
+}
+
+.console-warning {
+    color: #ffc83d;
+}
+
+.console-error {
+    color: #ff5f56;
+}
