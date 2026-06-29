@@ -63,7 +63,7 @@
                             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem" Wrap="FlexWrap.Wrap">
                                 @foreach (string flag in worker.StatusFlags)
                                 {
-                                    <RadzenBadge BadgeStyle="@GetBadgeStyleForFlag(flag)" Text="@flag" IsPill="true" />
+                                    <RadzenBadge BadgeStyle="@GetBadgeStyleForFlag(flag)" Text="@flag" IsPill="true" Style="text-transform: none;" />
                                 }
                             </RadzenStack>
                         </Template>
@@ -128,19 +128,19 @@
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem" Wrap="FlexWrap.Wrap">
                         @if (pool.OkCount > 0)
                         {
-                            <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@($"{pool.OkCount} Ok")" IsPill="true" />
+                            <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@($"{pool.OkCount} Ok")" IsPill="true" Style="text-transform: none;" />
                         }
                         @if (pool.StandbyCount > 0)
                         {
-                            <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="@($"{pool.StandbyCount} Stby")" IsPill="true" />
+                            <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="@($"{pool.StandbyCount} Stby")" IsPill="true" Style="text-transform: none;" />
                         }
                         @if (pool.DisabledCount > 0)
                         {
-                            <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="@($"{pool.DisabledCount} Dis/Drn")" IsPill="true" />
+                            <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="@($"{pool.DisabledCount} Dis/Drn")" IsPill="true" Style="text-transform: none;" />
                         }
                         @if (pool.HasError)
                         {
-                            <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="Err" IsPill="true" />
+                            <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="Err" IsPill="true" Style="text-transform: none;" />
                         }
                     </RadzenStack>
                 </Template>
