@@ -52,8 +52,8 @@ public sealed class BalancerController : ControllerBase
     /// nonce, then submits the form-encoded modification POST that the native UI would send,
     /// and finally returns the worker's post-action state scraped from Apache's response.
     ///
-    /// Valid <c>ActionType</c> values (case-insensitive): Enable, Disable, Drain, Stop,
-    /// DisableOff, DrainOff, StopOff, IgnoreErrorsOn, IgnoreErrorsOff, HotStandbyOn,
+    /// Valid <c>ActionType</c> values (case-insensitive): Enable, Disable, Drain, DrainOff, Stop,
+    /// DisableOff, StopOff, IgnoreErrorsOn, IgnoreErrorsOff, HotStandbyOn,
     /// HotStandbyOff, HotSpareOn, HotSpareOff, HcFailOn, HcFailOff.
     /// </remarks>
     /// <response code="200">The action was applied; the body contains the worker's new status.</response>

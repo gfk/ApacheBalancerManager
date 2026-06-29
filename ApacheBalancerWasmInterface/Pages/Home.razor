@@ -88,8 +88,9 @@
                                 <RadzenButton Icon="hourglass_empty" ButtonStyle="ButtonStyle.Warning"
                                               Size="ButtonSize.ExtraSmall"
                                               Variant="@(worker.IsDraining ? Variant.Filled : Variant.Flat)"
-                                              title="Drain" Disabled="@actionInFlight"
-                                              Click="@(() => ExecuteWorkerActionAsync(worker, DrainAction))" />
+                                              title="@(worker.IsDraining ? "Stop draining" : "Start draining")"
+                                              Disabled="@actionInFlight"
+                                              Click="@(() => ToggleDrainAsync(worker))" />
                                 <RadzenButton Icon="pause_circle" ButtonStyle="ButtonStyle.Info"
                                               Size="ButtonSize.ExtraSmall"
                                               Variant="@(worker.IsStandby ? Variant.Filled : Variant.Flat)"
@@ -153,7 +154,8 @@
 @code {
     private const string EnableAction = "Enable";
     private const string DisableAction = "Disable";
-    private const string DrainAction = "Drain";
+    private const string DrainOnAction = "Drain";
+    private const string DrainOffAction = "DrainOff";
     private const string HotStandbyOnAction = "HotStandbyOn";
     private const string HotStandbyOffAction = "HotStandbyOff";
     private const string PinnedPoolsStorageKey = "apachebalancer.pinnedPools";
@@ -342,6 +344,12 @@
         {
             ConsoleLog.Error($"Failed to copy URL: {exception.Message}");
         }
+    }
+
+    private async Task ToggleDrainAsync(WorkerViewModel worker)
+    {
+        string actionType = worker.IsDraining ? DrainOffAction : DrainOnAction;
+        await ExecuteWorkerActionAsync(worker, actionType);
     }
 
     private async Task ToggleStandbyAsync(WorkerViewModel worker)
