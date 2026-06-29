@@ -47,7 +47,17 @@
                             <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="@worker.ServerId" />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="WorkerViewModel" Title="Worker URL" Property="Url" />
+                    <RadzenDataGridColumn TItem="WorkerViewModel" Title="Worker URL" Property="Url">
+                        <Template Context="worker">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.25rem">
+                                <RadzenButton Icon="content_copy" ButtonStyle="ButtonStyle.Light"
+                                              Size="ButtonSize.ExtraSmall" Variant="Variant.Text"
+                                              title="Copy URL"
+                                              Click="@(() => CopyUrlAsync(worker.Url))" />
+                                <span>@worker.Url</span>
+                            </RadzenStack>
+                        </Template>
+                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="WorkerViewModel" Title="Status" Width="180px">
                         <Template Context="worker">
                             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem" Wrap="FlexWrap.Wrap">
@@ -318,6 +328,19 @@
         catch
         {
             // Ignore storage write failures (e.g. private-mode quota); pins just won't persist.
+        }
+    }
+
+    private async Task CopyUrlAsync(string url)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", url);
+            ConsoleLog.Success($"Copied to clipboard: {url}");
+        }
+        catch (Exception exception)
+        {
+            ConsoleLog.Error($"Failed to copy URL: {exception.Message}");
         }
     }
 
