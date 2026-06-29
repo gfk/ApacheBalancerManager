@@ -76,15 +76,11 @@
                     <RadzenDataGridColumn TItem="WorkerViewModel" Title="Actions" Width="190px" TextAlign="TextAlign.Center">
                         <Template Context="worker">
                             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem" JustifyContent="JustifyContent.Center">
-                                <RadzenButton Icon="play_arrow" ButtonStyle="ButtonStyle.Success"
+                                <RadzenButton Icon="@(worker.IsDisabled ? "play_arrow" : "block")" 
+                                              ButtonStyle="@(worker.IsDisabled ? ButtonStyle.Success : ButtonStyle.Danger)"
                                               Size="ButtonSize.ExtraSmall" Variant="Variant.Flat"
-                                              title="Enable" Disabled="@actionInFlight"
-                                              Click="@(() => ExecuteWorkerActionAsync(worker, EnableAction))" />
-                                <RadzenButton Icon="block" ButtonStyle="ButtonStyle.Danger"
-                                              Size="ButtonSize.ExtraSmall"
-                                              Variant="@(worker.IsDisabled ? Variant.Filled : Variant.Flat)"
-                                              title="Disable" Disabled="@actionInFlight"
-                                              Click="@(() => ExecuteWorkerActionAsync(worker, DisableAction))" />
+                                              title="@(worker.IsDisabled ? "Enable" : "Disable")" Disabled="@actionInFlight"
+                                              Click="@(() => ToggleEnabledAsync(worker))" />
                                 <RadzenButton Icon="hourglass_empty" ButtonStyle="ButtonStyle.Warning"
                                               Size="ButtonSize.ExtraSmall"
                                               Variant="@(worker.IsDraining ? Variant.Filled : Variant.Flat)"
@@ -344,6 +340,12 @@
         {
             ConsoleLog.Error($"Failed to copy URL: {exception.Message}");
         }
+    }
+
+    private async Task ToggleEnabledAsync(WorkerViewModel worker)
+    {
+        string actionType = worker.IsDisabled ? EnableAction : DisableAction;
+        await ExecuteWorkerActionAsync(worker, actionType);
     }
 
     private async Task ToggleDrainAsync(WorkerViewModel worker)
