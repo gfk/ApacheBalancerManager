@@ -29,7 +29,13 @@ public sealed class BalancerManagerClient : IBalancerManagerClient
 
         _logger.LogDebug("GET {Url} (server {ServerId})", url, server.Id);
 
-        HttpResponseMessage response = await client.GetAsync(url, cancellationToken);
+        using HttpRequestMessage request = new(HttpMethod.Get, url);
+        // Apache 2.4's balancer-manager cross-site check (AH10187) rejects any request
+        // whose Referer is not the manager page itself. Without it Apache logs a warning
+        // on every status poll; set the Referer to the manager URL to silence it.
+        request.Headers.Referrer = new Uri(url);
+
+        HttpResponseMessage response = await client.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         string html = await response.Content.ReadAsStringAsync(cancellationToken);
