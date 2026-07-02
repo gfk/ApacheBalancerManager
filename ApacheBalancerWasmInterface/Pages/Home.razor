@@ -162,8 +162,8 @@
     private readonly HashSet<string> expandedPools = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> pinnedPools = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-    private bool autoRefreshEnabled;
-    private int autoRefreshSeconds = 15;
+    private bool autoRefreshEnabled = true;
+    private int autoRefreshSeconds = 1;
     private readonly IReadOnlyList<AutoRefreshInterval> autoRefreshIntervals = new[]
     {
         new AutoRefreshInterval(1, "1s"),
@@ -216,6 +216,7 @@
 
         StateHasChanged();
         await RestoreExpandedRowsAsync();
+        StartAutoRefresh();
     }
 
     private async Task RestoreExpandedRowsAsync()
