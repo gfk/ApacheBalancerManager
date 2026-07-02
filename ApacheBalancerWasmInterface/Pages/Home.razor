@@ -333,7 +333,7 @@
     {
         try
         {
-            await JS.InvokeVoidAsync("navigator.clipboard.writeText", url);
+            await JS.InvokeVoidAsync("copyTextToClipboard", url);
             ConsoleLog.Success($"Copied to clipboard: {url}");
         }
         catch (Exception exception)

@@ -38,6 +38,33 @@
                 element.scrollTop = element.scrollHeight;
             }
         };
+
+        // navigator.clipboard is only defined in secure contexts (HTTPS or localhost).
+        // The published site is served over plain HTTP, so fall back to the legacy
+        // execCommand('copy') path when the modern Clipboard API is unavailable.
+        window.copyTextToClipboard = function (text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            // Keep the element out of view and out of the layout/scroll flow.
+            textArea.style.position = "fixed";
+            textArea.style.top = "-9999px";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                if (!document.execCommand("copy")) {
+                    throw new Error("execCommand('copy') returned false");
+                }
+            } finally {
+                document.body.removeChild(textArea);
+            }
+            return Promise.resolve();
+        };
     </script>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
 </body>
