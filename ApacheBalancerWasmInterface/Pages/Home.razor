@@ -6,24 +6,25 @@
 
 <PageTitle>Apache Balancer Dashboard</PageTitle>
 
-<RadzenStack Gap="1rem">
+@* The refresh controls live in the layout header, next to the console, but keep their
+   state here on the page that owns the refresh timer. *@
+<SectionContent SectionName="@LayoutSections.HeaderControls">
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+        <RadzenSwitch @bind-Value="autoRefreshEnabled" Change="@OnAutoRefreshChanged" />
+        <RadzenText TextStyle="TextStyle.Body2" class="rz-mb-0">Auto-Refresh</RadzenText>
+        <RadzenDropDown TValue="int" Value="@autoRefreshSeconds" Data="@autoRefreshIntervals"
+                        ValueProperty="Seconds" TextProperty="Label" Change="@OnAutoRefreshIntervalChanged"
+                        Style="width: 90px;" />
+        <RadzenButton Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Primary"
+                      Size="ButtonSize.Small"
+                      Click="@OnManualRefreshClickedAsync" IsBusy="@isLoading" />
+        <RadzenText TextStyle="TextStyle.Caption" class="rz-mb-0">
+            @(lastUpdated.HasValue ? $"Last updated: {lastUpdated.Value:HH:mm:ss}" : "Not loaded yet")
+        </RadzenText>
+    </RadzenStack>
+</SectionContent>
 
-    <RadzenCard>
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1.5rem" Wrap="FlexWrap.Wrap">
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                <RadzenSwitch @bind-Value="autoRefreshEnabled" Change="@OnAutoRefreshChanged" />
-                <RadzenText TextStyle="TextStyle.Body1" class="rz-mb-0">Auto-Refresh</RadzenText>
-                <RadzenDropDown TValue="int" Value="@autoRefreshSeconds" Data="@autoRefreshIntervals"
-                                ValueProperty="Seconds" TextProperty="Label" Change="@OnAutoRefreshIntervalChanged"
-                                Style="width: 90px;" />
-            </RadzenStack>
-            <RadzenButton Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Primary"
-                          Click="@OnManualRefreshClickedAsync" IsBusy="@isLoading" />
-            <RadzenText TextStyle="TextStyle.Caption" class="rz-mb-0">
-                @(lastUpdated.HasValue ? $"Last updated: {lastUpdated.Value:HH:mm:ss}" : "Not loaded yet")
-            </RadzenText>
-        </RadzenStack>
-    </RadzenCard>
+<RadzenStack Gap="1rem">
 
     @if (serverErrors.Count > 0)
     {
