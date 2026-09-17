@@ -78,18 +78,32 @@
                     <RadzenDataGridColumn TItem="WorkerViewModel" Title="Actions" Width="190px" TextAlign="TextAlign.Center">
                         <Template Context="worker">
                             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem" JustifyContent="JustifyContent.Center">
-                                <RadzenButton Icon="@(worker.IsDisabled ? "play_arrow" : "block")" 
+                                @* Each toggle paints the state the worker is in right now, and weight
+                                   follows deviation rather than colour: a worker sitting in its normal
+                                   mode shows the lighter tint, and only a mode that has been switched on
+                                   — disabled, draining, standby — reaches full strength. A healthy row
+                                   therefore stays quiet instead of carrying three saturated buttons. *@
+                                <RadzenButton Icon="@(worker.IsDisabled ? "play_arrow" : "block")"
                                               ButtonStyle="@(worker.IsDisabled ? ButtonStyle.Success : ButtonStyle.Danger)"
-                                              Size="ButtonSize.ExtraSmall" Variant="Variant.Flat"
-                                              title="@(worker.IsDisabled ? "Enable" : "Disable")" Disabled="@actionInFlight"
+                                              Shade="@(worker.IsDisabled ? Shade.Default : Shade.Lighter)"
+                                              Size="ButtonSize.ExtraSmall"
+                                              Variant="@(worker.IsDisabled ? Variant.Filled : Variant.Flat)"
+                                              title="@(worker.IsDisabled ? "Enable" : "Disable")"
+                                              Disabled="@actionInFlight"
                                               Click="@(() => ToggleEnabledAsync(worker))" />
-                                <RadzenButton Icon="hourglass_empty" ButtonStyle="ButtonStyle.Warning"
+                                <RadzenButton Icon="@(worker.IsDraining ? "hourglass_full" : "hourglass_empty")"
+                                              ButtonStyle="ButtonStyle.Warning"
+                                              Shade="@(worker.IsDraining ? Shade.Default : Shade.Lighter)"
                                               Size="ButtonSize.ExtraSmall"
                                               Variant="@(worker.IsDraining ? Variant.Filled : Variant.Flat)"
                                               title="@(worker.IsDraining ? "Stop draining" : "Start draining")"
                                               Disabled="@actionInFlight"
                                               Click="@(() => ToggleDrainAsync(worker))" />
-                                <RadzenButton Icon="pause_circle" ButtonStyle="ButtonStyle.Info"
+                                @* play_circle / pause_circle are distinct glyphs; the *_outline aliases
+                                   share a codepoint with pause_circle and would not change anything. *@
+                                <RadzenButton Icon="@(worker.IsStandby ? "pause_circle" : "play_circle")"
+                                              ButtonStyle="ButtonStyle.Info"
+                                              Shade="@(worker.IsStandby ? Shade.Default : Shade.Lighter)"
                                               Size="ButtonSize.ExtraSmall"
                                               Variant="@(worker.IsStandby ? Variant.Filled : Variant.Flat)"
                                               title="@(worker.IsStandby ? "Leave hot standby" : "Hot standby")"
