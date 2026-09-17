@@ -34,15 +34,16 @@
                              emptyNote: "Collecting samples…")
             </RadzenColumn>
             <RadzenColumn Size="12" SizeMD="4" class="pool-chart-col">
-                @* Apache rounds the byte counters hard, so this one waits for a full window rather than
-                   drawing a warm-up spike that would hold the axis hostage for the next two minutes. *@
+                @* Unless the server publishes exact counters, Apache rounds the byte columns hard, so
+                   this one waits for a full window rather than drawing a warm-up spike that would hold
+                   the axis hostage for the next two minutes. *@
                 @RenderChart("To / From per second",
                              $"Bytes per second, {trafficRateWindowLabel} moving average (solid: to, dashed: from)",
                              trafficSeries,
                              FormatBytesRateAxis,
                              FlatBytesAxisMax,
                              zeroBaseline: true,
-                             emptyNote: $"Collecting samples — needs {trafficRateWindowLabel} of history for a meaningful byte rate.")
+                             emptyNote: trafficEmptyNote)
             </RadzenColumn>
         </RadzenRow>
 
@@ -80,14 +81,23 @@
     private const double ElectedRateWindowSeconds = 15d;
 
     /// <summary>
-    /// Bounds on the trailing window the To/From rates are averaged over — far wider than Elected's,
-    /// because Apache prints those counters through apr_strfsize and the displayed value only moves in
-    /// steps (1 MB apart in the "161M" band, ~107 MB apart once a worker crosses 1 GB). The quantisation
-    /// error is one step spread over the whole window, so the window is what buys back the precision.
+    /// Bounds on the trailing window the To/From rates are averaged over when they come from the
+    /// balancer-manager page — far wider than Elected's, because Apache prints those counters through
+    /// apr_strfsize and the displayed value only moves in steps (1 MB apart in the "161M" band, ~107 MB
+    /// apart once a worker crosses 1 GB). The quantisation error is one step spread over the whole
+    /// window, so the window is what buys back the precision.
     /// </summary>
     private const double TrafficRateWindowMinimumSeconds = 60d;
 
     private const double TrafficRateWindowMaximumSeconds = 300d;
+
+    /// <summary>
+    /// Width of the trailing window the To/From rates are averaged over when every worker reports the
+    /// exact counters of a balancer-bytes endpoint. There is no rounding left to average out, so this
+    /// is the same short window Elected uses and the byte graph finally moves at the same pace as the
+    /// other two.
+    /// </summary>
+    private const double PreciseTrafficRateWindowSeconds = 15d;
 
     private const double SecondsPerMinute = 60d;
 
@@ -103,11 +113,17 @@
     private double trafficRateWindowSeconds = TrafficRateWindowMinimumSeconds;
     private string electedRateWindowLabel = string.Empty;
 
+    /// <summary>True when every worker in the pool reported exact byte counters at its latest sample.</summary>
+    private bool preciseBytes;
+
     /// <summary>
-    /// Always the full window, unlike the Elected one: no traffic point is drawn until its window is
-    /// full, so the figure the caption quotes is what the plotted points were actually measured over.
+    /// On the rounded counters this is always the full window: no traffic point is drawn until that
+    /// window is full, so the figure the caption quotes is what the plotted points were really measured
+    /// over. On the exact ones it narrows while the history fills, exactly like the Elected caption.
     /// </summary>
     private string trafficRateWindowLabel = string.Empty;
+
+    private string trafficEmptyNote = string.Empty;
 
     private object categoryStep = TimeSpan.FromSeconds(15);
     private object? categoryMin;
@@ -129,10 +145,16 @@
         trafficSeries = new List<MetricSeries>();
         hasEnoughSamples = false;
 
-        // How wide the traffic window may be depends on how much history is on hand, so the span has to
-        // be measured before anything is projected.
+        // How wide the traffic window may be depends on how much history is on hand and on whether the
+        // byte counters are exact, so both have to be measured before anything is projected.
         DateTime oldest = DateTime.MaxValue;
         DateTime newest = DateTime.MinValue;
+
+        // A pool spanning a server with the endpoint and one without it falls back to the wide window
+        // for everyone: the three charts share one window and one caption, and a mixed chart whose
+        // lines were measured over different spans would not be comparable across its own workers.
+        preciseBytes = workers.Count > 0;
+
         foreach (TrackedWorker worker in workers)
         {
             if (worker.Samples.Count >= 2)
@@ -150,11 +172,16 @@
                 {
                     newest = worker.Samples[worker.Samples.Count - 1].Timestamp;
                 }
+
+                if (!worker.Samples[worker.Samples.Count - 1].PreciseBytes)
+                {
+                    preciseBytes = false;
+                }
             }
         }
 
         TimeSpan window = newest > oldest ? newest - oldest : TimeSpan.Zero;
-        trafficRateWindowSeconds = TrafficRateWindowFor(window);
+        trafficRateWindowSeconds = preciseBytes ? PreciseTrafficRateWindowSeconds : TrafficRateWindowFor(window);
 
         List<TrackedWorker> overflow = new List<TrackedWorker>();
         foreach (TrackedWorker worker in workers)
@@ -189,7 +216,17 @@
         // While the history is younger than a rate window, the average really is over that shorter span,
         // so the captions name what was actually measured rather than what was asked for.
         electedRateWindowLabel = RateWindowLabel(window, ElectedRateWindowSeconds);
-        trafficRateWindowLabel = FormatDuration(TimeSpan.FromSeconds(trafficRateWindowSeconds));
+        trafficRateWindowLabel = preciseBytes
+            ? RateWindowLabel(window, trafficRateWindowSeconds)
+            : FormatDuration(TimeSpan.FromSeconds(trafficRateWindowSeconds));
+
+        // The exact counters draw from the first interval on, so there is nothing to warn about while
+        // the buffer fills; the rounded ones hold their points back until the window is full, which is
+        // long enough that the placeholder has to say why.
+        trafficEmptyNote = preciseBytes
+            ? "Collecting samples…"
+            : $"Collecting samples — needs {trafficRateWindowLabel} of history for a meaningful byte rate.";
+
         newestTimestamp = newest;
 
         // A degenerate domain would leave Radzen nothing to scale, so it falls back to auto there.
@@ -312,16 +349,18 @@
         return Rate(samples, ElectedOf, ElectedRateWindowSeconds, SecondsPerMinute, minimumWindowSeconds: 0d);
     }
 
-    /// <summary>Bytes per second, smoothed over <see cref="TrafficRateWindowSeconds"/>.</summary>
+    /// <summary>Bytes per second, smoothed over <see cref="trafficRateWindowSeconds"/>.</summary>
     /// <remarks>
-    /// Unlike Elected, a partial window here is not just coarse but misleading: one 1 MB display step
-    /// landing inside a two-second window reads as 500 KB/s against a true rate two orders of magnitude
-    /// lower, and that point would then hold the y axis for as long as it stays in the buffer. So no
-    /// point is drawn until the window is genuinely as wide as it claims to be.
+    /// On Apache's rounded counters a partial window is not just coarse but misleading: one 1 MB display
+    /// step landing inside a two-second window reads as 500 KB/s against a true rate two orders of
+    /// magnitude lower, and that point would then hold the y axis for as long as it stays in the buffer.
+    /// So no point is drawn until the window is genuinely as wide as it claims to be. Exact counters
+    /// have no such step to straddle, and behave like Elected: honest from the first interval on.
     /// </remarks>
     private List<MetricPoint> TrafficRate(IReadOnlyList<WorkerMetricSample> samples, Func<WorkerMetricSample, double> selector)
     {
-        return Rate(samples, selector, trafficRateWindowSeconds, unitSeconds: 1d, minimumWindowSeconds: trafficRateWindowSeconds);
+        return Rate(samples, selector, trafficRateWindowSeconds, unitSeconds: 1d,
+                    minimumWindowSeconds: preciseBytes ? 0d : trafficRateWindowSeconds);
     }
 
     /// <summary>

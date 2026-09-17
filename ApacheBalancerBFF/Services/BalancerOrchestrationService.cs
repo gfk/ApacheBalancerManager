@@ -14,17 +14,20 @@ public sealed class BalancerOrchestrationService : IBalancerOrchestrationService
     private readonly ApacheManagementOptions _options;
     private readonly IBalancerManagerClient _client;
     private readonly IBalancerHtmlParser _parser;
+    private readonly ITrafficMetricsClient _trafficMetrics;
     private readonly ILogger<BalancerOrchestrationService> _logger;
 
     public BalancerOrchestrationService(
         IOptions<ApacheManagementOptions> options,
         IBalancerManagerClient client,
         IBalancerHtmlParser parser,
+        ITrafficMetricsClient trafficMetrics,
         ILogger<BalancerOrchestrationService> logger)
     {
         _options = options.Value;
         _client = client;
         _parser = parser;
+        _trafficMetrics = trafficMetrics;
         _logger = logger;
     }
 
@@ -225,8 +228,20 @@ public sealed class BalancerOrchestrationService : IBalancerOrchestrationService
     {
         try
         {
-            string html = await _client.GetStatusPageAsync(server, cancellationToken);
+            Task<string> statusTask = _client.GetStatusPageAsync(server, cancellationToken);
+
+            // Optional and best-effort: this one never throws, so awaiting it first cannot mask a
+            // failure of the status page itself.
+            Task<TrafficSnapshot?> trafficTask = _trafficMetrics.GetSnapshotAsync(server, cancellationToken);
+            TrafficSnapshot? traffic = await trafficTask;
+
+            string html = await statusTask;
             List<BalancerStatusDto> balancers = _parser.ParseBalancers(html);
+
+            if (traffic is not null)
+            {
+                ApplyTrafficCounters(balancers, traffic);
+            }
 
             ServerStatusDto status = new()
             {
@@ -250,6 +265,31 @@ public sealed class BalancerOrchestrationService : IBalancerOrchestrationService
             };
 
             return (null, error);
+        }
+    }
+
+    /// <summary>
+    /// Stamps the exact byte totals onto every worker of a server whose snapshot was readable.
+    /// </summary>
+    /// <remarks>
+    /// A worker the snapshot does not list gets zero rather than null, and that is exact rather than
+    /// a guess: the aggregator counts from its own start, so a worker with no log line has carried no
+    /// bytes since then. The dashboard only ever plots deltas taken from samples it collected itself,
+    /// all of which are later than the snapshot's start, so zero is the right baseline even when the
+    /// aggregator was started long after Apache. Leaving these null instead would strand the whole
+    /// pool on the rounded cells whenever any one of its workers happened to be idle.
+    /// </remarks>
+    private static void ApplyTrafficCounters(List<BalancerStatusDto> balancers, TrafficSnapshot traffic)
+    {
+        foreach (BalancerStatusDto balancer in balancers)
+        {
+            foreach (WorkerStatusDto worker in balancer.Workers)
+            {
+                bool isKnown = traffic.TryGetCounters(balancer.Name, worker.Url, out WorkerTrafficCounters counters);
+
+                worker.ToBytes = isKnown ? counters.ToBytes : 0L;
+                worker.FromBytes = isKnown ? counters.FromBytes : 0L;
+            }
         }
     }
 

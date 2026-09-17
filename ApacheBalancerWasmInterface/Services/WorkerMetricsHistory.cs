@@ -99,12 +99,18 @@ public sealed class WorkerMetricsHistory
                     tracks[key] = track;
                 }
 
+                // The exact counters when the server publishes them, Apache's rounded cells otherwise.
+                // Both are byte totals of the same thing, so a server that gains or loses its
+                // balancer-bytes endpoint mid-history just changes the resolution of the line.
+                bool preciseBytes = worker.HasPreciseBytes;
+
                 track.Samples.Add(new WorkerMetricSample(
                     timestamp,
                     ApacheMetricParser.ParseCount(worker.Elected),
                     ApacheMetricParser.ParseCount(worker.Busy),
-                    ApacheMetricParser.ParseBytes(worker.To),
-                    ApacheMetricParser.ParseBytes(worker.From)));
+                    preciseBytes ? worker.ToBytes!.Value : ApacheMetricParser.ParseBytes(worker.To),
+                    preciseBytes ? worker.FromBytes!.Value : ApacheMetricParser.ParseBytes(worker.From),
+                    preciseBytes));
 
                 while (track.Samples.Count > MaxSamplesPerWorker)
                 {
