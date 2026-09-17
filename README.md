@@ -232,6 +232,13 @@ The BFF never fails a status poll over this: if the endpoint is missing, broken 
 
 ### Notes and limits
 
+- **`ProxyPass` beats `Alias`.** On a reverse-proxy vhost with a catch-all `ProxyPass /`, the snapshot path is handed straight to the backend, and what you get back is *the backend's* 404 rather than the file. The `Server:` header in the response tells you which one answered. Exclude the path before the catch-all, the same way `/balancer-manager` already is on that vhost:
+
+  ```apache
+  ProxyPass /balancer-bytes !
+  ```
+
+  It has to answer at **the same base URL the BFF already uses** for that server, because `MetricsPath` is resolved relative to `BaseUrl`. Serving it from a neighbouring vhost on another address is not enough.
 - **One aggregator per Apache server.** Every piped `CustomLog` spawns its own process, and two aggregators writing the same snapshot would overwrite each other's totals. `pgrep -af balancer-bytes-agg` should show exactly one.
 - **Watch out for vhost log directives.** A `<VirtualHost>` that declares any `CustomLog` of its own stops inheriting the server-level ones, so if your proxying vhost has its own access log, move the `CustomLog` line from the conf file into that vhost. The `LogFormat` line is still inherited and does not need to be repeated.
 - **These are client-side bytes.** `%I`/`%O` count what passed between Apache and the *client*, where `To`/`From` count what passed between Apache and the *backend*. They agree closely in a plain reverse proxy, but they will diverge if `mod_deflate` compresses responses on the way out. Arguably the client-side figure is the more useful one; it is simply not the same figure.
