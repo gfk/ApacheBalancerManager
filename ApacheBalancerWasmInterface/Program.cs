@@ -17,6 +17,7 @@ builder.Services.AddScoped((IServiceProvider serviceProvider) => new HttpClient
 });
 builder.Services.AddScoped<BalancerApiClient>();
 builder.Services.AddScoped<ConsoleLogService>();
+builder.Services.AddScoped<WorkerMetricsHistory>();
 builder.Services.AddRadzenComponents();
 
 await builder.Build().RunAsync();

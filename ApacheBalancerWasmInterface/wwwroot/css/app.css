@@ -205,3 +205,74 @@ code {
 .console-error {
     color: #ff5f56;
 }
+
+/* Live graphs under the worker table of an expanded pool. */
+.pool-charts {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--rz-base-300);
+}
+
+/* Grid children default to min-width:auto, which lets a long subtitle push the column
+   wider than its third instead of wrapping inside it. */
+.pool-charts .pool-chart-col {
+    min-width: 0;
+}
+
+/* Recessive caption under each chart title, one shade off the body text. Reserving two lines
+   keeps the three plots aligned at widths where only one of the captions wraps. */
+.pool-chart-subtitle {
+    color: var(--rz-text-secondary-color);
+    white-space: normal;
+    overflow-wrap: anywhere;
+    min-height: 2.5em;
+}
+
+/* Recessive hairline grid, so the lines stay the loudest thing in the plot. */
+.pool-charts .rz-chart .rz-grid-line {
+    stroke: var(--rz-base-300);
+    stroke-width: 1;
+}
+
+/* One legend for the three charts: a plain wrapping list, so long worker names never clip. */
+.pool-chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--rz-text-secondary-color);
+}
+
+.pool-chart-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.pool-chart-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex: 0 0 auto;
+}
+
+/* Placeholder that stands in for a chart that has nothing to draw yet. Matching the chart's
+   height keeps the three columns the same size while one of them is still warming up. */
+.pool-chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 260px;
+    padding: 0 1rem;
+    text-align: center;
+    color: var(--rz-text-secondary-color);
+}
+
+/* Radzen's caption style is white-space: nowrap, and a flex child sizes to its content, so the
+   note would otherwise run straight past the edge of the column instead of wrapping inside it. */
+.pool-chart-empty > * {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+}
