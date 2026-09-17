@@ -1,0 +1,470 @@
+@using System.Globalization
+@inject WorkerMetricsHistory History
+
+@* Live graphs of an expanded pool. Nothing is persisted anywhere, so these start empty when the
+   pool row is expanded and fill in on every auto-refresh tick. *@
+<div class="pool-charts">
+    @if (!hasEnoughSamples)
+    {
+        <RadzenText TextStyle="TextStyle.Caption" class="rz-mb-0">
+            Collecting samples — the graphs are built from the moment this pool is expanded, one point per refresh.
+        </RadzenText>
+    }
+    else
+    {
+        <RadzenRow Gap="1rem">
+            <RadzenColumn Size="12" SizeMD="4" class="pool-chart-col">
+                @RenderChart("Elected / min",
+                             $"Requests per minute, {electedRateWindowLabel} moving average",
+                             electedSeries,
+                             FormatCountAxis,
+                             FlatCountAxisMax,
+                             zeroBaseline: true,
+                             emptyNote: "Collecting samples…")
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="4" class="pool-chart-col">
+                @* Busy is the one gauge of the three: let the axis frame the variation rather than
+                   pinning it to zero, where a steady 30-in-flight would read as a flat line. *@
+                @RenderChart("Busy",
+                             "Requests in flight on each worker at each sample",
+                             busySeries,
+                             FormatCountAxis,
+                             FlatCountAxisMax,
+                             zeroBaseline: false,
+                             emptyNote: "Collecting samples…")
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="4" class="pool-chart-col">
+                @* Apache rounds the byte counters hard, so this one waits for a full window rather than
+                   drawing a warm-up spike that would hold the axis hostage for the next two minutes. *@
+                @RenderChart("To / From per second",
+                             $"Bytes per second, {TrafficRateWindowLabel} moving average (solid: to, dashed: from)",
+                             trafficSeries,
+                             FormatBytesRateAxis,
+                             FlatBytesAxisMax,
+                             zeroBaseline: true,
+                             emptyNote: $"Collecting samples — needs {TrafficRateWindowLabel} of history for a meaningful byte rate.")
+            </RadzenColumn>
+        </RadzenRow>
+
+        @* One legend for the three charts: they all colour workers the same way, and a wrapping
+           HTML list keeps long worker names readable where the built-in legend would clip them. *@
+        <div class="pool-chart-legend">
+            @foreach (MetricSeries entry in legend)
+            {
+                <span class="pool-chart-legend-item">
+                    <span class="pool-chart-swatch" style="background-color: @entry.Color;"></span>@entry.Label
+                </span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// The categorical palette, in its validated order. A worker keeps the slot it was given when it
+    /// first appeared, so losing another worker never repaints the survivors.
+    /// </summary>
+    private static readonly string[] Palette =
+    {
+        "#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"
+    };
+
+    /// <summary>Neutral ink for the aggregated tail; deliberately not one of the categorical hues.</summary>
+    private const string OverflowColor = "#6f6e69";
+
+    /// <summary>The pool whose workers are graphed. A fresh instance arrives on every refresh, which is what re-reads the history.</summary>
+    [Parameter]
+    [EditorRequired]
+    public BalancerPoolViewModel Pool { get; set; } = new BalancerPoolViewModel();
+
+    private List<MetricSeries> electedSeries = new List<MetricSeries>();
+    private List<MetricSeries> busySeries = new List<MetricSeries>();
+    private List<MetricSeries> trafficSeries = new List<MetricSeries>();
+    private List<MetricSeries> legend = new List<MetricSeries>();
+    /// <summary>
+    /// Width of the trailing window the Elected rate is averaged over. At the 1s refresh a single
+    /// request between two polls would otherwise read as 60/min, and the line would be a staircase
+    /// between zero and multiples of 60 instead of a rate you can follow.
+    /// </summary>
+    private const double ElectedRateWindowSeconds = 15d;
+
+    /// <summary>
+    /// Width of the trailing window the To/From rates are averaged over — far wider than Elected's,
+    /// because Apache prints those counters through apr_strfsize and the displayed value only moves in
+    /// steps (1 MB apart in the "161M" band, ~107 MB apart once a worker crosses 1 GB). The quantisation
+    /// error is one step spread over the whole window, so the window is what buys back the precision.
+    /// </summary>
+    private const double TrafficRateWindowSeconds = 60d;
+
+    private const double SecondsPerMinute = 60d;
+
+    /// <summary>
+    /// Constant, unlike the Elected one: no traffic point is drawn until its window is full, so the
+    /// figure the caption quotes is always the figure the plotted points were measured over.
+    /// </summary>
+    private static readonly string TrafficRateWindowLabel = FormatDuration(TimeSpan.FromSeconds(TrafficRateWindowSeconds));
+
+    private object categoryStep = TimeSpan.FromSeconds(15);
+    private object? categoryMin;
+    private object? categoryMax;
+    private string electedRateWindowLabel = string.Empty;
+    private DateTime newestTimestamp;
+    private bool hasEnoughSamples;
+
+    protected override void OnParametersSet()
+    {
+        BuildSeries();
+    }
+
+    private void BuildSeries()
+    {
+        IReadOnlyList<TrackedWorker> workers = History.GetWorkers(Pool.BalancerName);
+
+        electedSeries = new List<MetricSeries>();
+        busySeries = new List<MetricSeries>();
+        trafficSeries = new List<MetricSeries>();
+        hasEnoughSamples = false;
+
+        List<TrackedWorker> overflow = new List<TrackedWorker>();
+        DateTime oldest = DateTime.MaxValue;
+        DateTime newest = DateTime.MinValue;
+
+        foreach (TrackedWorker worker in workers)
+        {
+            if (worker.Samples.Count >= 2)
+            {
+                hasEnoughSamples = true;
+            }
+
+            if (worker.Samples.Count > 0)
+            {
+                if (worker.Samples[0].Timestamp < oldest)
+                {
+                    oldest = worker.Samples[0].Timestamp;
+                }
+                if (worker.Samples[worker.Samples.Count - 1].Timestamp > newest)
+                {
+                    newest = worker.Samples[worker.Samples.Count - 1].Timestamp;
+                }
+            }
+
+            // Past the palette we stop inventing hues and fold the tail into one aggregated line.
+            if (worker.ColorSlot >= Palette.Length)
+            {
+                overflow.Add(worker);
+                continue;
+            }
+
+            string color = Palette[worker.ColorSlot];
+            electedSeries.Add(new MetricSeries(worker.Label, color, LineType.Solid, ElectedRate(worker.Samples)));
+            busySeries.Add(new MetricSeries(worker.Label, color, LineType.Solid, Instant(worker.Samples, BusyOf)));
+            trafficSeries.Add(new MetricSeries($"{worker.Label} — to", color, LineType.Solid, TrafficRate(worker.Samples, ToBytesOf)));
+            trafficSeries.Add(new MetricSeries($"{worker.Label} — from", color, LineType.Dashed, TrafficRate(worker.Samples, FromBytesOf)));
+        }
+
+        if (overflow.Count > 0)
+        {
+            string label = $"Other ({overflow.Count} workers)";
+            electedSeries.Add(new MetricSeries(label, OverflowColor, LineType.Solid, SumOf(overflow, ElectedRate)));
+            busySeries.Add(new MetricSeries(label, OverflowColor, LineType.Solid, SumOf(overflow, samples => Instant(samples, BusyOf))));
+            trafficSeries.Add(new MetricSeries($"{label} — to", OverflowColor, LineType.Solid, SumOf(overflow, samples => TrafficRate(samples, ToBytesOf))));
+            trafficSeries.Add(new MetricSeries($"{label} — from", OverflowColor, LineType.Dashed, SumOf(overflow, samples => TrafficRate(samples, FromBytesOf))));
+        }
+
+        // The Elected chart already carries exactly one series per worker, label and colour included,
+        // which is precisely what the shared legend needs.
+        legend = electedSeries;
+
+        TimeSpan window = newest > oldest ? newest - oldest : TimeSpan.Zero;
+        // While the history is younger than a rate window, the average really is over that shorter span,
+        // so the captions name what was actually measured rather than what was asked for.
+        electedRateWindowLabel = RateWindowLabel(window, ElectedRateWindowSeconds);
+        newestTimestamp = newest;
+
+        // A degenerate domain would leave Radzen nothing to scale, so it falls back to auto there.
+        bool hasSpan = window > TimeSpan.Zero;
+        categoryMin = hasSpan ? oldest : null;
+        categoryMax = hasSpan ? newest : null;
+        // Four labelled ticks: any more and the mm:ss labels collide at a third of the page width.
+        categoryStep = TimeSpan.FromSeconds(Math.Max(1d, Math.Round(window.TotalSeconds / 4d)));
+    }
+
+    private RenderFragment RenderChart(string title, string subtitle, List<MetricSeries> series,
+                                       Func<object, string> valueFormatter, double flatAxisMax, bool zeroBaseline,
+                                       string emptyNote) =>
+        @<RadzenStack Gap="0.25rem">
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@title</RadzenText>
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-mb-0 pool-chart-subtitle">@subtitle</RadzenText>
+            @if (!HasPoints(series))
+            {
+                <div class="pool-chart-empty">
+                    <RadzenText TextStyle="TextStyle.Caption" class="rz-mb-0">@emptyNote</RadzenText>
+                </div>
+            }
+            else
+            {
+            <RadzenChart Style="height: 260px; width: 100%;">
+                <RadzenChartTooltipOptions Shared="true" />
+                @* Identity comes from the one shared legend below the row, not from three copies. *@
+                <RadzenLegend Visible="false" />
+                @* All three charts share one time domain. Without it the To/From chart — whose points
+                   only start once its window is full — would span a shorter period than its neighbours
+                   and the same x position would mean a different moment in each. *@
+                <RadzenCategoryAxis Step="@categoryStep" Formatter="@FormatCategoryAxis" Padding="16"
+                                    Min="@categoryMin" Max="@categoryMax" />
+                <RadzenValueAxis Formatter="@valueFormatter" Min="@(zeroBaseline ? ZeroBaseline : null)"
+                                 Max="@AxisMaxFor(series, flatAxisMax)" Step="@AxisStepFor(series, flatAxisMax)">
+                    <RadzenGridLines Visible="true" />
+                </RadzenValueAxis>
+                @foreach (MetricSeries line in series)
+                {
+                    <RadzenLineSeries @key="line.Label" TItem="MetricPoint" Data="@line.Points"
+                                      CategoryProperty="@nameof(MetricPoint.Timestamp)"
+                                      ValueProperty="@nameof(MetricPoint.Value)"
+                                      Title="@line.Label" Stroke="@line.Color" StrokeWidth="2"
+                                      LineType="@line.LineType" Smooth="false">
+                        <RadzenMarkers MarkerType="MarkerType.None" />
+                    </RadzenLineSeries>
+                }
+            </RadzenChart>
+            }
+        </RadzenStack>;
+
+    /// <summary>True once at least one series has something to draw.</summary>
+    private static bool HasPoints(List<MetricSeries> series)
+    {
+        foreach (MetricSeries line in series)
+        {
+            if (line.Points.Count > 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>Boxed once, because the axis takes its bounds as <see cref="object"/>.</summary>
+    private static readonly object ZeroBaseline = 0d;
+
+    /// <summary>Range to fall back on for a count axis that is flat at zero — enough for "0" and "1".</summary>
+    private const double FlatCountAxisMax = 1d;
+
+    /// <summary>Range to fall back on for a byte axis that is flat at zero — enough for "0 B" and "1 KB".</summary>
+    private const double FlatBytesAxisMax = 1024d;
+
+    /// <summary>
+    /// Left to itself, Radzen scales an all-zero chart to a fraction of a unit and the formatted ticks
+    /// come out as repeated "0". Pinning the range in that case keeps the labels distinct; once there is
+    /// real movement the axis goes back to scaling itself.
+    /// </summary>
+    private static object? AxisMaxFor(List<MetricSeries> series, double flatAxisMax)
+    {
+        return IsFlatAtZero(series) ? flatAxisMax : null;
+    }
+
+    private static object? AxisStepFor(List<MetricSeries> series, double flatAxisMax)
+    {
+        return IsFlatAtZero(series) ? flatAxisMax : null;
+    }
+
+    private static bool IsFlatAtZero(List<MetricSeries> series)
+    {
+        foreach (MetricSeries line in series)
+        {
+            foreach (MetricPoint point in line.Points)
+            {
+                if (point.Value != 0d)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static double ElectedOf(WorkerMetricSample sample) => sample.Elected;
+
+    private static double BusyOf(WorkerMetricSample sample) => sample.Busy;
+
+    private static double ToBytesOf(WorkerMetricSample sample) => sample.ToBytes;
+
+    private static double FromBytesOf(WorkerMetricSample sample) => sample.FromBytes;
+
+    /// <summary>
+    /// <summary>Requests per minute, smoothed over <see cref="ElectedRateWindowSeconds"/>.</summary>
+    /// <remarks>
+    /// Elected is exact, so a short window is honest from the first interval on: the worst a partial
+    /// window does is quantise the line to multiples of 60/min, which settles as the window fills.
+    /// </remarks>
+    private static List<MetricPoint> ElectedRate(IReadOnlyList<WorkerMetricSample> samples)
+    {
+        return Rate(samples, ElectedOf, ElectedRateWindowSeconds, SecondsPerMinute, minimumWindowSeconds: 0d);
+    }
+
+    /// <summary>Bytes per second, smoothed over <see cref="TrafficRateWindowSeconds"/>.</summary>
+    /// <remarks>
+    /// Unlike Elected, a partial window here is not just coarse but misleading: one 1 MB display step
+    /// landing inside a two-second window reads as 500 KB/s against a true rate two orders of magnitude
+    /// lower, and that point would then hold the y axis for as long as it stays in the buffer. So no
+    /// point is drawn until the window is genuinely as wide as it claims to be.
+    /// </remarks>
+    private static List<MetricPoint> TrafficRate(IReadOnlyList<WorkerMetricSample> samples, Func<WorkerMetricSample, double> selector)
+    {
+        return Rate(samples, selector, TrafficRateWindowSeconds, unitSeconds: 1d, minimumWindowSeconds: TrafficRateWindowSeconds);
+    }
+
+    /// <summary>
+    /// The rate at which a counter climbed, expressed per <paramref name="unitSeconds"/> and averaged
+    /// over a trailing window of at least <paramref name="windowSeconds"/>. Points whose window is
+    /// still narrower than <paramref name="minimumWindowSeconds"/> are left out entirely.
+    /// </summary>
+    private static List<MetricPoint> Rate(IReadOnlyList<WorkerMetricSample> samples,
+                                          Func<WorkerMetricSample, double> selector,
+                                          double windowSeconds,
+                                          double unitSeconds,
+                                          double minimumWindowSeconds)
+    {
+        List<MetricPoint> points = new List<MetricPoint>(samples.Count);
+
+        // The trailing edge only ever moves forward, so one pass covers the whole series.
+        int trailing = 0;
+        for (int index = 1; index < samples.Count; index++)
+        {
+            while (trailing + 1 < index
+                   && (samples[index].Timestamp - samples[trailing + 1].Timestamp).TotalSeconds >= windowSeconds)
+            {
+                trailing++;
+            }
+
+            double elapsedSeconds = (samples[index].Timestamp - samples[trailing].Timestamp).TotalSeconds;
+            if (elapsedSeconds <= 0d || elapsedSeconds < minimumWindowSeconds)
+            {
+                continue;
+            }
+
+            // A counter that went backwards means Apache restarted or the worker was reset; report no
+            // traffic for that step rather than a negative rate.
+            double delta = selector(samples[index]) - selector(samples[trailing]);
+            double rate = delta > 0d ? delta * unitSeconds / elapsedSeconds : 0d;
+            points.Add(new MetricPoint(samples[index].Timestamp, rate));
+        }
+
+        return points;
+    }
+
+    /// <summary>Busy is a gauge, not a counter: it is plotted exactly as Apache reported it.</summary>
+    private static List<MetricPoint> Instant(IReadOnlyList<WorkerMetricSample> samples, Func<WorkerMetricSample, double> selector)
+    {
+        List<MetricPoint> points = new List<MetricPoint>(samples.Count);
+        foreach (WorkerMetricSample sample in samples)
+        {
+            points.Add(new MetricPoint(sample.Timestamp, selector(sample)));
+        }
+        return points;
+    }
+
+    /// <summary>
+    /// Adds the tail workers together per timestamp; a worker that joined late simply contributes from
+    /// where it starts. Rates, counts and gauges all add across workers, so the same projection that
+    /// draws a single worker's line is what gets summed here.
+    /// </summary>
+    private static List<MetricPoint> SumOf(IReadOnlyList<TrackedWorker> workers,
+                                           Func<IReadOnlyList<WorkerMetricSample>, List<MetricPoint>> project)
+    {
+        SortedDictionary<DateTime, double> totals = new SortedDictionary<DateTime, double>();
+        foreach (TrackedWorker worker in workers)
+        {
+            foreach (MetricPoint point in project(worker.Samples))
+            {
+                totals[point.Timestamp] = totals.TryGetValue(point.Timestamp, out double running)
+                    ? running + point.Value
+                    : point.Value;
+            }
+        }
+
+        List<MetricPoint> summed = new List<MetricPoint>(totals.Count);
+        foreach (KeyValuePair<DateTime, double> entry in totals)
+        {
+            summed.Add(new MetricPoint(entry.Key, entry.Value));
+        }
+        return summed;
+    }
+
+    /// <summary>
+    /// Labels the time axis relative to the newest sample ("-30s", "now") rather than as a clock time:
+    /// on a window of a few seconds an absolute mm:ss label reads like hours and minutes, and the point
+    /// of these graphs is how far back you are looking, not what time it was.
+    /// </summary>
+    private string FormatCategoryAxis(object value)
+    {
+        DateTime timestamp;
+        if (value is DateTime dateTime)
+        {
+            timestamp = dateTime;
+        }
+        else if (value is double ticks)
+        {
+            timestamp = new DateTime((long)ticks);
+        }
+        else
+        {
+            return string.Empty;
+        }
+
+        int secondsAgo = (int)Math.Round((newestTimestamp - timestamp).TotalSeconds);
+        return secondsAgo <= 0 ? "now" : "-" + FormatDuration(TimeSpan.FromSeconds(secondsAgo));
+    }
+
+    private static string FormatCountAxis(object value)
+    {
+        return ToDouble(value).ToString("N0", CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatBytesRateAxis(object value)
+    {
+        return FormatBytes(ToDouble(value)) + "/s";
+    }
+
+    private static double ToDouble(object value)
+    {
+        return value is null ? 0d : Convert.ToDouble(value, CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatBytes(double bytes)
+    {
+        string[] units = { "B", "KB", "MB", "GB", "TB", "PB" };
+        double magnitude = Math.Abs(bytes);
+        int unitIndex = 0;
+        while (magnitude >= 1024d && unitIndex < units.Length - 1)
+        {
+            magnitude /= 1024d;
+            unitIndex++;
+        }
+
+        string number = unitIndex == 0 || magnitude >= 100d
+            ? magnitude.ToString("N0", CultureInfo.InvariantCulture)
+            : magnitude.ToString("N1", CultureInfo.InvariantCulture);
+        return (bytes < 0d ? "-" : string.Empty) + number + " " + units[unitIndex];
+    }
+
+    private static string RateWindowLabel(TimeSpan window, double configuredSeconds)
+    {
+        return FormatDuration(TimeSpan.FromSeconds(Math.Min(configuredSeconds, Math.Max(1d, window.TotalSeconds))));
+    }
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        int totalSeconds = (int)Math.Round(duration.TotalSeconds);
+        if (totalSeconds < 60)
+        {
+            return $"{totalSeconds}s";
+        }
+
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        return seconds == 0 ? $"{minutes}m" : $"{minutes}m {seconds}s";
+    }
+
+    /// <summary>One plotted line: its legend label, its colour, and whether it is the dashed "from" half of a pair.</summary>
+    private sealed record MetricSeries(string Label, string Color, LineType LineType, List<MetricPoint> Points);
+}

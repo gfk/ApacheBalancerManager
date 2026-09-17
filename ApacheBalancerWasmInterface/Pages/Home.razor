@@ -2,6 +2,7 @@
 @implements IDisposable
 @inject BalancerApiClient ApiClient
 @inject ConsoleLogService ConsoleLog
+@inject WorkerMetricsHistory MetricsHistory
 @inject IJSRuntime JS
 
 <PageTitle>Apache Balancer Dashboard</PageTitle>
@@ -99,6 +100,7 @@
                     </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
+            <PoolMetricsCharts @key="pool.BalancerName" Pool="@pool" />
         </Template>
         <Columns>
             <RadzenDataGridColumn TItem="BalancerPoolViewModel" Title="Balancer Pool">
@@ -177,6 +179,13 @@
     private DateTimeOffset? lastUpdated;
     private CancellationTokenSource? autoRefreshCts;
 
+    /// <summary>
+    /// Set while <see cref="RestoreExpandedRowsAsync"/> re-expands rows after a refresh. The grid raises
+    /// RowExpand/RowCollapse for those programmatic calls too, and acting on them would restart the
+    /// graphs on every tick — the page already knows which pools are open.
+    /// </summary>
+    private bool isRestoringExpansion;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadPinnedPoolsAsync();
@@ -204,6 +213,8 @@
                 pools = ApplyPinOrder(BalancerViewModelMapper.ToPoolFirst(response));
                 serverErrors = response.Errors;
                 lastUpdated = DateTimeOffset.Now;
+                // Feeds the graphs of the expanded pools, and drops what the collapsed ones had recorded.
+                MetricsHistory.Record(pools, expandedPools);
             }
         }
         catch (Exception exception)
@@ -227,23 +238,45 @@
             return;
         }
 
-        foreach (BalancerPoolViewModel pool in pools)
+        isRestoringExpansion = true;
+        try
         {
-            if (expandedPools.Contains(pool.BalancerName))
+            foreach (BalancerPoolViewModel pool in pools)
             {
-                await poolGrid.ExpandRow(pool);
+                if (expandedPools.Contains(pool.BalancerName))
+                {
+                    await poolGrid.ExpandRow(pool);
+                }
             }
+        }
+        finally
+        {
+            isRestoringExpansion = false;
         }
     }
 
     private void OnPoolExpanded(BalancerPoolViewModel pool)
     {
+        if (isRestoringExpansion)
+        {
+            return;
+        }
+
         expandedPools.Add(pool.BalancerName);
+        // Seed the graphs right away instead of waiting for the next refresh tick.
+        MetricsHistory.RecordPool(pool);
     }
 
     private void OnPoolCollapsed(BalancerPoolViewModel pool)
     {
+        if (isRestoringExpansion)
+        {
+            return;
+        }
+
         expandedPools.Remove(pool.BalancerName);
+        // Collapsing throws the history away: re-expanding starts a fresh graph.
+        MetricsHistory.Forget(pool.BalancerName);
     }
 
     private bool IsPinned(BalancerPoolViewModel pool)
