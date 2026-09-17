@@ -61,3 +61,12 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+###############################################################################
+# Files deployed to the Apache (Linux) hosts
+#
+# These are copied straight out of a checkout onto a Debian server, so they must
+# keep LF endings: a CRLF shebang line makes the kernel fail to start perl.
+###############################################################################
+tools/balancer-bytes-agg  text eol=lf
+tools/balancer-bytes.conf text eol=lf

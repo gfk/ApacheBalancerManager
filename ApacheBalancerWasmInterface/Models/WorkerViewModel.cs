@@ -29,6 +29,15 @@ public sealed class WorkerViewModel
 
     public string From => Worker.From;
 
+    /// <summary>Exact bytes sent to the worker, when the server publishes them; null otherwise.</summary>
+    public long? ToBytes => Worker.ToBytes;
+
+    /// <summary>Exact bytes received from the worker, when the server publishes them; null otherwise.</summary>
+    public long? FromBytes => Worker.FromBytes;
+
+    /// <summary>True when both byte counters came from the precise endpoint rather than Apache's rounded cells.</summary>
+    public bool HasPreciseBytes => Worker.ToBytes.HasValue && Worker.FromBytes.HasValue;
+
     public string Elected => Worker.Elected;
 
     public string Busy => Worker.Busy;

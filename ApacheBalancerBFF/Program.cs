@@ -17,8 +17,17 @@ builder.Services.AddHttpClient(BalancerManagerClient.HttpClientName, (HttpClient
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 
+// The optional traffic snapshot is an enhancement, not the status itself: it gets a shorter leash
+// so a hung metrics endpoint cannot hold a status poll open for the full ten seconds.
+builder.Services.AddHttpClient(TrafficMetricsClient.HttpClientName, (HttpClient client) =>
+{
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
+
 builder.Services.AddSingleton<IBalancerHtmlParser, BalancerHtmlParser>();
 builder.Services.AddTransient<IBalancerManagerClient, BalancerManagerClient>();
+// Singleton so it can remember which servers it has already complained about; see the class.
+builder.Services.AddSingleton<ITrafficMetricsClient, TrafficMetricsClient>();
 builder.Services.AddTransient<IBalancerOrchestrationService, BalancerOrchestrationService>();
 
 builder.Services

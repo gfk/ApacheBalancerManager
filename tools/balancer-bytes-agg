@@ -1,0 +1,184 @@
+#!/usr/bin/perl
+#
+# balancer-bytes-agg — publishes byte-exact per-worker traffic counters for the Apache
+# Balancer Manager dashboard. Optional: without it the dashboard falls back to the To/From
+# cells of the balancer-manager page.
+#
+# Why it exists: balancer-manager prints To/From through apr_strfsize, which compacts them to
+# three significant characters ("161M"). The displayed value only moves in steps — 1 MB apart in
+# that band, ~107 MB apart once a worker crosses 1 GB — which is the resolution floor of the byte
+# graphs no matter how the dashboard smooths them. This program counts the bytes itself, from the
+# access log, and publishes running totals the dashboard can subtract exactly.
+#
+# Apache runs it as a piped logger and feeds it one line per balancer-proxied request:
+#
+#   LogFormat "%{BALANCER_NAME}e %{BALANCER_WORKER_NAME}e %I %O" balancer_bytes
+#   CustomLog "|/usr/local/bin/balancer-bytes-agg /run/apache2/balancer-metrics/balancer-bytes.json" \
+#             balancer_bytes env=BALANCER_WORKER_NAME
+#
+# Nothing accumulates on disk: the totals live in memory and are republished to one small JSON
+# snapshot on a tmpfs, which Apache then serves to the BFF. Diagnostics go to stderr, which for a
+# piped logger is the Apache ErrorLog.
+#
+# Written against perl-base only — an Essential package on Debian — so there is nothing to install.
+
+use strict;
+use warnings;
+
+# Republished this often even when no request came in, so a reader can tell "no traffic" from
+# "the aggregator died" by looking at how old the snapshot is.
+my $DEFAULT_FLUSH_SECONDS = 1;
+
+my $SNAPSHOT_PATH = shift @ARGV;
+my $FLUSH_SECONDS = shift @ARGV;
+
+if (!defined $SNAPSHOT_PATH || $SNAPSHOT_PATH eq '') {
+    die "usage: balancer-bytes-agg <snapshot-path> [flush-seconds]\n";
+}
+
+$FLUSH_SECONDS = $DEFAULT_FLUSH_SECONDS
+    if !defined $FLUSH_SECONDS || $FLUSH_SECONDS !~ /^[0-9]+(?:\.[0-9]+)?$/ || $FLUSH_SECONDS <= 0;
+
+# "balancer\tworker" => [requests, to_bytes, from_bytes]. The key space is the balancer
+# configuration, so it is bounded by the number of BalancerMembers Apache was started with.
+my %totals;
+
+my $started_at = time();
+
+ensure_directory($SNAPSHOT_PATH);
+
+# Publish once up front so the endpoint answers immediately rather than 404-ing until the
+# first flush.
+write_snapshot();
+my $last_written = time();
+
+# Reading with sysread rather than readline: select() only sees the kernel buffer, so a buffered
+# readline could leave whole lines sitting in Perl's own buffer with select insisting there is
+# nothing to read.
+my $readable_mask = '';
+vec($readable_mask, fileno(STDIN), 1) = 1;
+my $pending = '';
+
+while (1) {
+    my $ready = $readable_mask;
+    my $found = select($ready, undef, undef, $FLUSH_SECONDS);
+
+    if (defined $found && $found > 0) {
+        my $chunk;
+        my $read = sysread(STDIN, $chunk, 65536);
+
+        # Apache closed the pipe: it is shutting us down, or restarting with a fresh instance.
+        last if !defined $read || $read == 0;
+
+        $pending .= $chunk;
+        while ($pending =~ s/^([^\n]*)\n//) {
+            record($1);
+        }
+    }
+
+    my $now = time();
+    if ($now - $last_written >= $FLUSH_SECONDS) {
+        write_snapshot();
+        $last_written = $now;
+    }
+}
+
+write_snapshot();
+exit 0;
+
+# Accumulates one access-log line: "<balancer> <worker> <bytes in> <bytes out>".
+sub record {
+    my ($line) = @_;
+
+    my ($balancer, $worker, $bytes_in, $bytes_out) = split ' ', $line;
+    return if !defined $bytes_out;
+
+    # "-" is what mod_log_config prints for an unset variable: the request never went through a
+    # balancer, so there is no worker to attribute it to.
+    return if $worker eq '-' || $balancer eq '-';
+
+    $bytes_in  = $bytes_in  =~ /^[0-9]+$/ ? $bytes_in  : 0;
+    $bytes_out = $bytes_out =~ /^[0-9]+$/ ? $bytes_out : 0;
+
+    my $entry = $totals{"$balancer\t$worker"} ||= [0, 0, 0];
+    $entry->[0]++;
+
+    # %I is what the client sent us, which is what we forward to the backend — balancer-manager's
+    # "To" column. %O is what we sent back, which is what the backend gave us: "From". The two are
+    # named from opposite ends of the proxy, so they cross over here.
+    $entry->[1] += $bytes_in;
+    $entry->[2] += $bytes_out;
+}
+
+# Rewrites the snapshot through a temporary file: rename(2) is atomic within a filesystem, so
+# Apache never serves a half-written document.
+sub write_snapshot {
+    my $temporary = $SNAPSHOT_PATH . '.tmp';
+
+    my $handle;
+    if (!open $handle, '>', $temporary) {
+        warn "balancer-bytes-agg: cannot write $temporary: $!\n";
+        return;
+    }
+
+    my @rows;
+    foreach my $key (sort keys %totals) {
+        my ($balancer, $worker) = split /\t/, $key, 2;
+        my $entry = $totals{$key};
+        push @rows, sprintf(
+            '    { "balancer": %s, "worker": %s, "requests": %d, "to": %d, "from": %d }',
+            json_string($balancer), json_string($worker), @{$entry});
+    }
+
+    print $handle "{\n";
+    print $handle "  \"version\": 1,\n";
+    print $handle '  "since": ' . json_string(iso8601($started_at)) . ",\n";
+    print $handle '  "generated": ' . json_string(iso8601(time())) . ",\n";
+    print $handle "  \"workers\": [\n";
+    print $handle join(",\n", @rows), "\n" if @rows;
+    print $handle "  ]\n";
+    print $handle "}\n";
+
+    if (!close $handle) {
+        warn "balancer-bytes-agg: cannot close $temporary: $!\n";
+        return;
+    }
+
+    if (!rename $temporary, $SNAPSHOT_PATH) {
+        warn "balancer-bytes-agg: cannot rename $temporary to $SNAPSHOT_PATH: $!\n";
+    }
+}
+
+# Creates the snapshot's directory if it is missing — /run is a tmpfs, so it is empty again after
+# every reboot and there is no install step to rely on.
+sub ensure_directory {
+    my ($path) = @_;
+
+    my ($directory) = $path =~ m{^(.*)/[^/]*$};
+    return if !defined $directory || $directory eq '';
+
+    my $built = $directory =~ m{^/} ? '' : '.';
+    foreach my $part (grep { length } split m{/}, $directory) {
+        $built .= '/' . $part;
+        next if -d $built;
+        if (!mkdir($built, 0755) && !-d $built) {
+            warn "balancer-bytes-agg: cannot create $built: $!\n";
+            return;
+        }
+    }
+}
+
+sub iso8601 {
+    my ($epoch) = @_;
+    my @parts = gmtime($epoch);
+    return sprintf('%04d-%02d-%02dT%02d:%02d:%02dZ',
+                   $parts[5] + 1900, $parts[4] + 1, $parts[3], $parts[2], $parts[1], $parts[0]);
+}
+
+sub json_string {
+    my ($value) = @_;
+    $value = '' if !defined $value;
+    $value =~ s/([\\"])/\\$1/g;
+    $value =~ s/([\x00-\x1f])/sprintf('\\u%04x', ord($1))/ge;
+    return '"' . $value . '"';
+}

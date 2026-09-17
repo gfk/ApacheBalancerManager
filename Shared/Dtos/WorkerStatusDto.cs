@@ -39,6 +39,23 @@ public sealed class WorkerStatusDto
     /// <summary>Bytes received from the worker ("From" column).</summary>
     public string From { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Exact bytes sent to the worker, counted from the access log by the optional balancer-bytes
+    /// aggregator; null when the server has no metrics endpoint configured or it could not be read.
+    /// </summary>
+    /// <remarks>
+    /// This is a number rather than a verbatim cell because its source is one: the aggregator
+    /// publishes raw byte totals, so nothing is being rounded back up here. <see cref="To"/> stays
+    /// exactly as Apache rendered it either way.
+    /// </remarks>
+    public long? ToBytes { get; set; }
+
+    /// <summary>
+    /// Exact bytes received from the worker, counted from the access log by the optional
+    /// balancer-bytes aggregator; null when it is not configured or could not be read.
+    /// </summary>
+    public long? FromBytes { get; set; }
+
     /// <summary>Health-check method (e.g. "GET", "NONE"). Empty when the column is absent.</summary>
     public string HealthCheckMethod { get; set; } = string.Empty;
 

@@ -1,7 +1,18 @@
 namespace ApacheBalancerWasmInterface.Models;
 
-/// <summary>The four plotted counters of one worker, as read at a single poll.</summary>
-public sealed record WorkerMetricSample(DateTime Timestamp, double Elected, double Busy, double ToBytes, double FromBytes);
+/// <summary>
+/// The four plotted counters of one worker, as read at a single poll. <paramref name="PreciseBytes"/>
+/// records where the byte counters came from: the server's balancer-bytes endpoint, which is exact,
+/// or the balancer-manager cells, which Apache has rounded to three significant characters. The rate
+/// windows differ by a factor of ten between the two, so the distinction has to travel with the sample.
+/// </summary>
+public sealed record WorkerMetricSample(
+    DateTime Timestamp,
+    double Elected,
+    double Busy,
+    double ToBytes,
+    double FromBytes,
+    bool PreciseBytes);
 
 /// <summary>One point of a plotted line.</summary>
 public sealed record MetricPoint(DateTime Timestamp, double Value);
