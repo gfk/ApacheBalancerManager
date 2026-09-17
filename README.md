@@ -298,6 +298,29 @@ Then open <http://localhost:5188>. The development profile already points the da
 
 `ApacheBalancerBFF/ApacheBalancerBFF.http` contains ready-made requests for the API if you prefer to start there.
 
+### Without a proxy cluster
+
+Every row in the dashboard is scraped from a live Apache server, so with none reachable the grid
+comes up empty. [`tools/fake-balancer-manager.cs`](tools/fake-balancer-manager.cs) stands in for
+two of them — seeded with workers in every status the dashboard paints, and applying the
+`w_status_*` fields on POST, so the action buttons genuinely toggle:
+
+```bash
+# Terminal 1 — two stand-in servers (.NET 10 runs the single file directly)
+ASPNETCORE_URLS="http://localhost:8801;http://localhost:8802" dotnet run tools/fake-balancer-manager.cs
+
+# Terminal 2 — the BFF, pointed at them from the environment so no appsettings file is edited
+ApacheManagement__Servers__0__Id=lb-01 ApacheManagement__Servers__0__BaseUrl=http://localhost:8801 \
+ApacheManagement__Servers__1__Id=lb-02 ApacheManagement__Servers__1__BaseUrl=http://localhost:8802 \
+dotnet run --project ApacheBalancerBFF
+
+# Terminal 3 — the dashboard
+dotnet run --project ApacheBalancerWasmInterface
+```
+
+It is a development fixture, not a mod_proxy_balancer emulator: it implements the parts of the
+page this dashboard reads, and its state lives in memory until you stop it.
+
 ## Docker
 
 The BFF ships with a Dockerfile, and CI publishes an image to GHCR on every push to `main`:
@@ -454,9 +477,10 @@ ApacheBalancerWasmInterface/    Blazor WebAssembly dashboard
   Pages/                        The dashboard
   Services/                     API client, view-model mapper, metrics history
 Shared/                         DTOs shared by both projects
-tools/                          Optional add-on for the Apache servers
+tools/                          Optional add-on for the Apache servers, and a local fixture
   balancer-bytes-agg            Piped-log aggregator publishing byte-exact counters
   balancer-bytes.conf           Apache conf snippet that runs it and serves its snapshot
+  fake-balancer-manager.cs      Stand-in balancer-manager for running the dashboard locally
 ```
 
 ## Contributing
