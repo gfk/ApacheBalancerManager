@@ -37,12 +37,12 @@
                 @* Apache rounds the byte counters hard, so this one waits for a full window rather than
                    drawing a warm-up spike that would hold the axis hostage for the next two minutes. *@
                 @RenderChart("To / From per second",
-                             $"Bytes per second, {TrafficRateWindowLabel} moving average (solid: to, dashed: from)",
+                             $"Bytes per second, {trafficRateWindowLabel} moving average (solid: to, dashed: from)",
                              trafficSeries,
                              FormatBytesRateAxis,
                              FlatBytesAxisMax,
                              zeroBaseline: true,
-                             emptyNote: $"Collecting samples — needs {TrafficRateWindowLabel} of history for a meaningful byte rate.")
+                             emptyNote: $"Collecting samples — needs {trafficRateWindowLabel} of history for a meaningful byte rate.")
             </RadzenColumn>
         </RadzenRow>
 
@@ -72,6 +72,25 @@
     /// <summary>Neutral ink for the aggregated tail; deliberately not one of the categorical hues.</summary>
     private const string OverflowColor = "#6f6e69";
 
+    /// <summary>
+    /// Width of the trailing window the Elected rate is averaged over. At the 1s refresh a single
+    /// request between two polls would otherwise read as 60/min, and the line would be a staircase
+    /// between zero and multiples of 60 instead of a rate you can follow.
+    /// </summary>
+    private const double ElectedRateWindowSeconds = 15d;
+
+    /// <summary>
+    /// Bounds on the trailing window the To/From rates are averaged over — far wider than Elected's,
+    /// because Apache prints those counters through apr_strfsize and the displayed value only moves in
+    /// steps (1 MB apart in the "161M" band, ~107 MB apart once a worker crosses 1 GB). The quantisation
+    /// error is one step spread over the whole window, so the window is what buys back the precision.
+    /// </summary>
+    private const double TrafficRateWindowMinimumSeconds = 60d;
+
+    private const double TrafficRateWindowMaximumSeconds = 300d;
+
+    private const double SecondsPerMinute = 60d;
+
     /// <summary>The pool whose workers are graphed. A fresh instance arrives on every refresh, which is what re-reads the history.</summary>
     [Parameter]
     [EditorRequired]
@@ -81,33 +100,18 @@
     private List<MetricSeries> busySeries = new List<MetricSeries>();
     private List<MetricSeries> trafficSeries = new List<MetricSeries>();
     private List<MetricSeries> legend = new List<MetricSeries>();
-    /// <summary>
-    /// Width of the trailing window the Elected rate is averaged over. At the 1s refresh a single
-    /// request between two polls would otherwise read as 60/min, and the line would be a staircase
-    /// between zero and multiples of 60 instead of a rate you can follow.
-    /// </summary>
-    private const double ElectedRateWindowSeconds = 15d;
+    private double trafficRateWindowSeconds = TrafficRateWindowMinimumSeconds;
+    private string electedRateWindowLabel = string.Empty;
 
     /// <summary>
-    /// Width of the trailing window the To/From rates are averaged over — far wider than Elected's,
-    /// because Apache prints those counters through apr_strfsize and the displayed value only moves in
-    /// steps (1 MB apart in the "161M" band, ~107 MB apart once a worker crosses 1 GB). The quantisation
-    /// error is one step spread over the whole window, so the window is what buys back the precision.
+    /// Always the full window, unlike the Elected one: no traffic point is drawn until its window is
+    /// full, so the figure the caption quotes is what the plotted points were actually measured over.
     /// </summary>
-    private const double TrafficRateWindowSeconds = 60d;
-
-    private const double SecondsPerMinute = 60d;
-
-    /// <summary>
-    /// Constant, unlike the Elected one: no traffic point is drawn until its window is full, so the
-    /// figure the caption quotes is always the figure the plotted points were measured over.
-    /// </summary>
-    private static readonly string TrafficRateWindowLabel = FormatDuration(TimeSpan.FromSeconds(TrafficRateWindowSeconds));
+    private string trafficRateWindowLabel = string.Empty;
 
     private object categoryStep = TimeSpan.FromSeconds(15);
     private object? categoryMin;
     private object? categoryMax;
-    private string electedRateWindowLabel = string.Empty;
     private DateTime newestTimestamp;
     private bool hasEnoughSamples;
 
@@ -125,10 +129,10 @@
         trafficSeries = new List<MetricSeries>();
         hasEnoughSamples = false;
 
-        List<TrackedWorker> overflow = new List<TrackedWorker>();
+        // How wide the traffic window may be depends on how much history is on hand, so the span has to
+        // be measured before anything is projected.
         DateTime oldest = DateTime.MaxValue;
         DateTime newest = DateTime.MinValue;
-
         foreach (TrackedWorker worker in workers)
         {
             if (worker.Samples.Count >= 2)
@@ -147,7 +151,14 @@
                     newest = worker.Samples[worker.Samples.Count - 1].Timestamp;
                 }
             }
+        }
 
+        TimeSpan window = newest > oldest ? newest - oldest : TimeSpan.Zero;
+        trafficRateWindowSeconds = TrafficRateWindowFor(window);
+
+        List<TrackedWorker> overflow = new List<TrackedWorker>();
+        foreach (TrackedWorker worker in workers)
+        {
             // Past the palette we stop inventing hues and fold the tail into one aggregated line.
             if (worker.ColorSlot >= Palette.Length)
             {
@@ -175,10 +186,10 @@
         // which is precisely what the shared legend needs.
         legend = electedSeries;
 
-        TimeSpan window = newest > oldest ? newest - oldest : TimeSpan.Zero;
         // While the history is younger than a rate window, the average really is over that shorter span,
         // so the captions name what was actually measured rather than what was asked for.
         electedRateWindowLabel = RateWindowLabel(window, ElectedRateWindowSeconds);
+        trafficRateWindowLabel = FormatDuration(TimeSpan.FromSeconds(trafficRateWindowSeconds));
         newestTimestamp = newest;
 
         // A degenerate domain would leave Radzen nothing to scale, so it falls back to auto there.
@@ -308,9 +319,21 @@
     /// lower, and that point would then hold the y axis for as long as it stays in the buffer. So no
     /// point is drawn until the window is genuinely as wide as it claims to be.
     /// </remarks>
-    private static List<MetricPoint> TrafficRate(IReadOnlyList<WorkerMetricSample> samples, Func<WorkerMetricSample, double> selector)
+    private List<MetricPoint> TrafficRate(IReadOnlyList<WorkerMetricSample> samples, Func<WorkerMetricSample, double> selector)
     {
-        return Rate(samples, selector, TrafficRateWindowSeconds, unitSeconds: 1d, minimumWindowSeconds: TrafficRateWindowSeconds);
+        return Rate(samples, selector, trafficRateWindowSeconds, unitSeconds: 1d, minimumWindowSeconds: trafficRateWindowSeconds);
+    }
+
+    /// <summary>
+    /// Half of the history on hand, bounded. A wider window is strictly better for precision — the
+    /// quantisation error is one display step spread across it — so the only thing holding it back is
+    /// that nothing can be drawn for the first window's worth of the buffer. Spending half the history
+    /// pins that cost at half the chart whatever the refresh interval, and the upper bound stops a slow
+    /// interval, where the buffer can span half an hour, from leaving most of the chart blank.
+    /// </summary>
+    private static double TrafficRateWindowFor(TimeSpan historySpan)
+    {
+        return Math.Clamp(historySpan.TotalSeconds / 2d, TrafficRateWindowMinimumSeconds, TrafficRateWindowMaximumSeconds);
     }
 
     /// <summary>
