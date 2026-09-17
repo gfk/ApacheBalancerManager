@@ -6,7 +6,7 @@ Apache ships a functional but bare balancer-manager: one page per server, no his
 
 Nothing is installed on the Apache servers: the backend simply scrapes and drives the same `/balancer-manager` pages you already have. One [optional add-on](#precise-traffic-counters-optional) does install a small script, for those who want byte-exact traffic figures instead of the rounded ones Apache prints.
 
-![The pool overview across two Apache servers](docs/images/dashboard.jpg)
+![The pool overview across two Apache servers](docs/images/pool-expanded.jpg)
 
 ---
 
