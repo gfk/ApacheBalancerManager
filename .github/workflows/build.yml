@@ -13,13 +13,12 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
-    # Make the environment-scoped vars/secrets available
-    environment: build
-
+    # GITHUB_TOKEN is the only credential used: contents to check out, packages to
+    # push to GHCR. The package is created on the first run and is owned by this
+    # repository from then on.
     permissions:
       contents: read
       packages: write
-      id-token: write
 
     steps:
     - name: Checkout source code
