@@ -42,6 +42,7 @@ public sealed class WorkerStatusDto
     /// <summary>
     /// Exact bytes sent to the worker, counted from the access log by the optional balancer-bytes
     /// aggregator; null when the server has no metrics endpoint configured or it could not be read.
+    /// Zero means the aggregator is running and this worker has carried nothing since it started.
     /// </summary>
     /// <remarks>
     /// This is a number rather than a verbatim cell because its source is one: the aggregator

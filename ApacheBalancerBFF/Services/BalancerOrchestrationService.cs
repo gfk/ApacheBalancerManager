@@ -269,21 +269,26 @@ public sealed class BalancerOrchestrationService : IBalancerOrchestrationService
     }
 
     /// <summary>
-    /// Stamps the exact byte totals onto the workers the snapshot knows about. A worker it does not
-    /// cover — one that has had no traffic since Apache started, or a server whose aggregator is
-    /// down — keeps them null, and the dashboard falls back to Apache's rounded cells for it.
+    /// Stamps the exact byte totals onto every worker of a server whose snapshot was readable.
     /// </summary>
+    /// <remarks>
+    /// A worker the snapshot does not list gets zero rather than null, and that is exact rather than
+    /// a guess: the aggregator counts from its own start, so a worker with no log line has carried no
+    /// bytes since then. The dashboard only ever plots deltas taken from samples it collected itself,
+    /// all of which are later than the snapshot's start, so zero is the right baseline even when the
+    /// aggregator was started long after Apache. Leaving these null instead would strand the whole
+    /// pool on the rounded cells whenever any one of its workers happened to be idle.
+    /// </remarks>
     private static void ApplyTrafficCounters(List<BalancerStatusDto> balancers, TrafficSnapshot traffic)
     {
         foreach (BalancerStatusDto balancer in balancers)
         {
             foreach (WorkerStatusDto worker in balancer.Workers)
             {
-                if (traffic.TryGetCounters(balancer.Name, worker.Url, out WorkerTrafficCounters counters))
-                {
-                    worker.ToBytes = counters.ToBytes;
-                    worker.FromBytes = counters.FromBytes;
-                }
+                bool isKnown = traffic.TryGetCounters(balancer.Name, worker.Url, out WorkerTrafficCounters counters);
+
+                worker.ToBytes = isKnown ? counters.ToBytes : 0L;
+                worker.FromBytes = isKnown ? counters.FromBytes : 0L;
             }
         }
     }

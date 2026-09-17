@@ -96,6 +96,17 @@ public sealed class TrafficMetricsClient : ITrafficMetricsClient
                     "check the Apache error log for balancer-bytes-agg");
             }
 
+            // An absent worker is read as zero bytes downstream, which is only sound if the pipeline is
+            // actually being fed. A snapshot with no rows at all proves the opposite, so it is treated
+            // as unusable: a brand-new aggregator costs nothing by waiting, and a pipeline that is
+            // never fed says so here instead of confidently plotting no traffic on every worker.
+            if (document.Workers.Count == 0)
+            {
+                return ReportFailure(server, url,
+                    "the snapshot is empty, so no balancer-proxied request has reached the aggregator yet; " +
+                    "if that persists, check that the CustomLog line is in the vhost carrying the balancer traffic");
+            }
+
             ReportSuccess(server, url, document.Workers.Count);
 
             return TrafficSnapshot.FromRows(document.Workers
