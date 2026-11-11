@@ -89,6 +89,8 @@ public sealed class WatchdogService : BackgroundService
     /// <returns>False when the watchdog has nothing to do and the loop should not start.</returns>
     private async Task<bool> StartUpAsync(CancellationToken cancellationToken)
     {
+        // A backstop rather than the real switch: Program.cs does not register this service at all
+        // unless the section is enabled. It matters only if something hosts the class directly.
         if (!_options.Enabled)
         {
             _logger.LogInformation(

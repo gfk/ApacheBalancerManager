@@ -6,7 +6,7 @@ Apache ships a functional but bare balancer-manager: one page per server, no his
 
 Nothing is installed on the Apache servers: the backend simply scrapes and drives the same `/balancer-manager` pages you already have. One [optional add-on](#precise-traffic-counters-optional) does install a small script, for those who want byte-exact traffic figures instead of the rounded ones Apache prints.
 
-![The pool overview across two Apache servers](docs/images/pool-expanded.jpg)
+![The pool overview across two Apache servers](docs/images/dashboard.jpg)
 
 ---
 
@@ -19,6 +19,7 @@ Nothing is installed on the Apache servers: the backend simply scrapes and drive
 - [Requirements](#requirements)
 - [Apache configuration](#apache-configuration)
 - [Precise traffic counters (optional)](#precise-traffic-counters-optional)
+- [External watchdog (optional)](#external-watchdog-optional)
 - [Configuration](#configuration)
 - [Running locally](#running-locally)
 - [Docker](#docker)
@@ -52,6 +53,7 @@ This dashboard inverts that: **pools first, servers as a column inside them**, r
 - **Live graphs per pool.** Expand a pool to get request rate, in-flight requests, and byte throughput per worker, built client-side from the polling history.
 - **Adaptive rate windows.** The moving-average windows scale to the history actually on hand, and the captions name the window that was really measured.
 - **Byte-exact traffic, if you want it.** An [optional add-on](#precise-traffic-counters-optional) on the Apache side replaces the rounded `To`/`From` columns with counters accurate to the byte, and the byte graph drops from a multi-minute window to the same 15 seconds as the others.
+- **Unattended failover, if you want it.** An [optional watchdog](#external-watchdog-optional) probes each backend on its own schedule — with a budget Apache's own health checks cannot have — and takes a failing one out of rotation on every proxy at once. Off unless you turn it on, and observe-only until you arm it.
 - **Auto-refresh at 1s / 3s / 5s / 15s**, with a manual refresh button and a last-updated stamp.
 - **Pinned pools.** Pin the pools you watch to the top of the list; pins persist in `localStorage`.
 - **On-screen console.** A terminal-style log in the header records every action and its outcome, so you have a trail of what you just did.
@@ -245,6 +247,106 @@ The BFF never fails a status poll over this: if the endpoint is missing, broken 
 - **An idle worker reads as zero, not as unknown.** The snapshot only lists workers that have taken a request since the aggregator started; every other worker on that server is reported as `0` bytes. That is exact rather than a guess — the aggregator counts from its own start, and the dashboard only ever plots deltas between samples it took after that — and it is what keeps a pool in the 15-second window instead of dropping it back to the wide one the moment a single worker goes quiet. A snapshot with *no* rows at all is the exception: it is treated as not yet usable, so a pipeline that is never fed falls back to the rounded cells and says so in the log, rather than confidently plotting no traffic everywhere.
 - **Counters restart with Apache.** They count from the moment the aggregator started, not from the moment the worker was created, and a graceful restart resets them. The dashboard plots rates, not totals, so a reset costs you one zero-valued point.
 - **Restrict the endpoint.** The snapshot names your backends and says how much traffic each one carries. Limit it to the management network, exactly like `/balancer-manager`.
+
+## External watchdog (optional)
+
+**Everything else in this project works without this section.** Leave it out — the default — and the BFF is the dashboard and its API, nothing more: with `Watchdog:Enabled` absent or false, no background loop, no HTTP client and no state file are registered at all. Turn it on and the same service also watches your backends and takes a failing one out of rotation on every proxy at once.
+
+### The problem it solves
+
+`mod_proxy_hcheck` has no probe timeout of its own. A health check shares the worker's `timeout=` with real user traffic, so on a backend whose slowest legitimate pages run for minutes, that value has to stay high — and a probe sent to a backend that still accepts connections but never answers simply hangs. A probe that never completes never increments `hcfails`, so the member is never demoted and the hot standby is never tried.
+
+The shape that produces this is ordinary: an application server whose kernel-side HTTP stack keeps accepting connections and queueing requests while the application behind it is down. Apache sees a connection that opened, a TLS handshake that completed, and a response that never comes — and waits.
+
+Lowering `timeout=` is not the answer when the same number also governs user traffic. A supervisor outside Apache has no such constraint: its budget applies to probes and to nothing else.
+
+### How it decides
+
+Each cycle it probes every configured target concurrently, with its own timeout and an optional latency ceiling below that timeout — so a backend that still answers but has become unusable is caught before it goes silent altogether. A *target* is one probe plus the balancer worker that probe speaks for.
+
+Seeing every target in the same cycle is what makes the interesting rule possible: a target that names a `PeerTargetId` is never disabled while that peer is failing too. Two sick backends mean the fault lies in something they share — a database, the network, a bad release — and moving traffic between them cuts the requests in flight while fixing nothing.
+
+### Guard rails
+
+An automaton that can pull production backends out of rotation is itself a new way to cause an outage, so every path to an action is guarded:
+
+| Guard | Behaviour |
+| --- | --- |
+| `DryRun` | **On by default.** Logs the decision it would have taken; sends nothing. |
+| Peer check | Will not disable a worker while its `PeerTargetId` is failing too. |
+| Last worker | Will not leave a pool without a usable worker on any server. A hot standby counts as usable. |
+| Unreadable server | Will not act if any configured Apache server could not be scraped. |
+| Rate limit | At most `MaxActionsPerHour` actions in a rolling hour, then it stops and says so. |
+| Partial failure | Rolls back the servers that accepted, rather than leave a cluster in a mixed state. |
+| Ownership | Only ever re-enables workers listed in its own state file. |
+
+Two choices worth knowing about:
+
+- It uses **`Disable`** (`w_status_D`), not `HcFail`. `mod_proxy_hcheck` owns the `HcFail` flag and clears it on its next successful probe, so a watchdog setting that flag would be contradicted within seconds.
+- It comes back with **`DisableOff`**, not `Enable`, because `Enable` also clears `Drain` and `Stop` — which may well have been set by a person.
+
+The ownership rule needs the state file because Apache's status flags carry no provenance: a worker somebody disabled by hand looks exactly like one the watchdog disabled. Only what it wrote down is ever undone, including across a restart of this service. In a container, point `StateFilePath` at a mounted volume.
+
+### Configuration
+
+`ApacheBalancerBFF/appsettings.json`, alongside `ApacheManagement`:
+
+```json
+{
+  "Watchdog": {
+    "Enabled": true,
+    "DryRun": true,
+    "PollIntervalSeconds": 10,
+    "FailuresBeforeDisable": 3,
+    "SuccessesBeforeEnable": 6,
+    "MaxActionsPerHour": 6,
+    "Targets": [
+      {
+        "Id": "web-public@app-1",
+        "PeerTargetId": "web-public@app-2",
+        "BalancerName": "web-public-backend",
+        "WorkerUrl": "https://web-public.app-1.example.com",
+        "Probe": {
+          "Url": "https://web-public.app-1.example.com/health",
+          "TimeoutSeconds": 5,
+          "MaxLatencyMilliseconds": 2000,
+          "ExpectedStatusCodes": [ 200 ],
+          "ExpectedBodyFragment": "OK"
+        }
+      }
+    ]
+  }
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `Enabled` | Master switch. False or absent — the default — and none of this is registered. |
+| `DryRun` | Decide and log, send nothing. Defaults to **true**: you have to ask twice to arm it. |
+| `PollIntervalSeconds` | Delay between cycles. |
+| `FailuresBeforeDisable` / `SuccessesBeforeEnable` | Consecutive probes needed each way. Coming back is deliberately slower than leaving, so a backend that recovers and relapses does not flap. |
+| `MaxActionsPerHour` | Ceiling on actions in a rolling hour. |
+| `StateFilePath` | *Optional.* Where it records what it disabled. Defaults to `watchdog-state.json` next to the binaries. |
+| `CustomRootCertificatePath` | *Optional.* Validate backend certificates against this root instead of the host trust store — the case where a firewall re-signs them on the fly and only Apache is configured to trust that CA. A name mismatch is still rejected. |
+| `Targets[].Id` | Identifier used in the log and to resolve `PeerTargetId`. |
+| `Targets[].PeerTargetId` | *Optional, strongly recommended.* The target serving the same site on the other backend. |
+| `Targets[].BalancerName` / `WorkerUrl` | The pool and worker, spelled exactly as `/balancer-manager` displays them. Checked once at startup, and a mismatch is reported then rather than during an incident. |
+| `Targets[].Probe` | `Url`, `TimeoutSeconds`, optional `MaxLatencyMilliseconds`, `ExpectedStatusCodes`, optional `ExpectedBodyFragment`. |
+
+The action is applied to **every** server in `ApacheManagement:Servers`, all or none. Acting on some proxies but not others would split traffic across two backends, which is worse than not acting.
+
+As with the rest, any of this can be overridden from the environment: `Watchdog__Enabled=true`, `Watchdog__Targets__0__Probe__TimeoutSeconds=3`.
+
+### Start in observe-only
+
+Leave `DryRun` on and read the log for a few weeks before arming it. On an install that stalls once every few weeks, that is the only honest way to find out whether it would have fired on the real outages and stayed quiet in between — and the log says exactly what it would have done, and which guard stopped it when it declined.
+
+### Notes and limits
+
+- **Probe the backends directly, not through the proxies.** Through a proxy you cannot tell which backend answered, which is the one thing the decision rests on.
+- **Give it a cheap endpoint.** A probe that touches a database every few seconds mostly measures the database — which is shared by both backends, so it says nothing about which one should get the traffic.
+- **If the BFF is down, so is the supervision.** Keep Apache's own health checks configured underneath: they catch the simple cases, a refused TCP connection above all, without depending on anything else.
+- **The probe client is quietened on purpose.** `HttpClient` logs four `Information` lines per request, which at one probe every few seconds buries everything else. `appsettings.json` holds it at `Warning` through `System.Net.Http.HttpClient.watchdog-probe`; raise it when you need to see the requests themselves.
 
 ## Configuration
 
