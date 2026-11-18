@@ -23,10 +23,13 @@ public static class ProbeHandlerFactory
             // 302 and judge it.
             AllowAutoRedirect = false,
 
-            // Short-lived connections. A pooled connection to a backend that has stopped
-            // servicing requests without closing is exactly the state this watchdog exists to
-            // catch, and reusing it would just reproduce the problem on the probe side.
-            PooledConnectionLifetime = TimeSpan.FromMinutes(1),
+            // No pooling: every probe opens its own connection. Reuse would let a probe succeed
+            // on a socket opened before the trouble started, while every new connection — which
+            // is what fresh user traffic needs — stalls. Any lifetime longer than the poll
+            // interval lets that happen; zero is the only value that does not depend on the
+            // interval. The connect and TLS handshake therefore count against the probe's
+            // timeout and latency ceiling, as they do for a client arriving now.
+            PooledConnectionLifetime = TimeSpan.Zero,
             ConnectTimeout = TimeSpan.FromSeconds(5)
         };
 

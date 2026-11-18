@@ -345,6 +345,7 @@ Leave `DryRun` on and read the log for a few weeks before arming it. On an insta
 
 - **Probe the backends directly, not through the proxies.** Through a proxy you cannot tell which backend answered, which is the one thing the decision rests on.
 - **Give it a cheap endpoint.** A probe that touches a database every few seconds mostly measures the database — which is shared by both backends, so it says nothing about which one should get the traffic.
+- **Every probe opens a new connection.** Nothing is pooled. A backend can keep answering on a connection it accepted earlier while every new one hangs, and a probe that reused its socket would call that backend healthy. The TCP connect and TLS handshake therefore count against `TimeoutSeconds` and `MaxLatencyMilliseconds`. Leave room for them when you set the latency ceiling.
 - **If the BFF is down, so is the supervision.** Keep Apache's own health checks configured underneath: they catch the simple cases, a refused TCP connection above all, without depending on anything else.
 - **The probe client is quietened on purpose.** `HttpClient` logs four `Information` lines per request, which at one probe every few seconds buries everything else. `appsettings.json` holds it at `Warning` through `System.Net.Http.HttpClient.watchdog-probe`; raise it when you need to see the requests themselves.
 
